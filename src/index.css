@@ -475,6 +475,14 @@ button:disabled {
   border-radius: var(--radius-lg);
   padding: 20px;
   margin-bottom: 20px;
+  strong {
+    font-size: 18px;
+  }
+  .result-restricciones {
+    font-size: 17px;
+    padding-left: 20px;
+    margin: 8px 0 0;
+  }
 }
 
 .result-info h2 {
@@ -534,20 +542,25 @@ button:disabled {
   gap: 4px;
 }
 
-.result-valores li {
-  font-family: var(--mono);
-  font-size: 14px;
-  padding: 6px 12px;
-  background: var(--color-bg);
-  border-radius: var(--radius);
+.result-info {
+  .result-valores li {
+    font-family: var(--mono);
+    font-size: 15px;
+    margin-top: 8px;
+    padding: 6px 12px;
+    background: var(--color-bg);
+    border-radius: var(--radius);
+  }
+  
+  .result-valores li.optimo {
+    margin: auto;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    font-weight: 600;
+    color: #166534;
+  }
 }
 
-.result-valores li.optimo {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  font-weight: 600;
-  color: #166534;
-}
 
 /* Simplex tableau */
 .iteracion {
