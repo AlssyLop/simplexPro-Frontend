@@ -11,7 +11,7 @@ export async function listarProblemas(page = 1): Promise<ResumenProblema[]> {
 export async function registrarProblema(
   metodo: 'simplex' | 'grafico',
   data: Record<string, unknown>,
-): Promise<{ mensaje: string }> {
+): Promise<{ id: string }> {
   const res = await fetch(`${API}/problema/registrar?metodo=${metodo}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

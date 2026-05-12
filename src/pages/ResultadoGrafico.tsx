@@ -13,7 +13,7 @@ function ResultadoGrafico() {
     if (!id) return
     obtenerSolucionGrafica(id)
       .then(setData)
-      .catch((e) => setError(e.message ?? 'Error al cargar la solución'))
+      .catch((e) => setError(e.id ?? 'Error al cargar la solución'))
   }, [id])
 
   if (error) {
@@ -55,7 +55,7 @@ function ResultadoGrafico() {
           <h2>{data.titulo}</h2>
           {data.descripcion && <p className="subtitulo">{data.descripcion}</p>}
           <p style={{ fontFamily: 'var(--mono)', fontSize: 15, margin: 0 }}>
-            {data.funcion_objetivo}
+            Z = {data.tipoOptimizacion.toUpperCase()} ({data.funcion_objetivo})
           </p>
         </div>
 
@@ -64,9 +64,9 @@ function ResultadoGrafico() {
         </div>
 
         {data.restricciones.length > 0 && (
-          <div className="result-info" style={{ marginBottom: 16 }}>
+          <div className="result-info">
             <strong>Restricciones:</strong>
-            <ul style={{ fontFamily: 'var(--mono)', fontSize: 13, paddingLeft: 20, margin: '8px 0 0' }}>
+            <ul className='result-restricciones'>
               {data.restricciones.map((r, i) => (
                 <li key={i}>{r.inecuacion}</li>
               ))}

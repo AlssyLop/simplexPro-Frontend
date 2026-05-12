@@ -109,12 +109,12 @@ function FloatingForm({ metodo, onClose }: Props) {
         }
       }
       const res = await registrarProblema(metodo, payload)
-      const id = res.mensaje
+      const id = res.id
       handleClose()
       if (esSimplex) {
-        navigate(`/resultados/simplex/${id}`)
+        navigate(`/resultado/simplex/${id}`)
       } else {
-        navigate(`/resultados/grafica/${id}`)
+        navigate(`/resultado/grafica/${id}`)
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Error al enviar'
