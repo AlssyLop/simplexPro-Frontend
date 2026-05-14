@@ -36,8 +36,8 @@ Para CADA suposición rechazada, haz una pregunta a la vez:
    [████░░░░░░] 3/6
    ```
 3. La pregunta debe ser sobre **la suposición rechazada** — no sobre otra cosa.
-4. Ofrece **4 opciones** como posibles nuevas definiciones + una quinta opción llamada **"otra"**.
-5. Si elige una opción (1-4), esa se convierte en la nueva definición.
+4. Ofrece **6 opciones** como posibles nuevas definiciones + una séptima opción llamada **"otra"**.
+5. Si elige una opción (1-6), esa se convierte en la nueva definición.
 6. Si elige "otra", el usuario te dará su propia respuesta — escúchala y úsala como definición.
 
 ## Fase 4: Confirmación
@@ -84,11 +84,13 @@ Ejemplos:
 2. [Opción 2]
 3. [Opción 3]
 4. [Opción 4]
-5. otra
+5. [Opción 5]
+6. [Opción 6]
+7. otra
 ```
 
 ---
 
 ## Ejemplo resumido
 
-Usuario da historia → Tú listas 6 suposiciones → Usuario dice "1, 3, 5" → Por cada una haces una pregunta con 4 opciones + otra → Usuario responde → Al final dices "Listo"
+Usuario da historia → Tú listas 15 suposiciones → Usuario dice "1, 3, 5" → Por cada una haces una pregunta con 6 opciones + otra → Usuario responde → Al final dices "Listo"
