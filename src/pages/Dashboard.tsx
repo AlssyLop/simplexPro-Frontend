@@ -1,9 +1,7 @@
-import { useState } from 'react'
-import FloatingForm from '../components/FloatingForm'
-import type { Metodo } from '../types'
+import { useNavigate } from 'react-router-dom'
 
 function Dashboard() {
-  const [metodo, setMetodo] = useState<Metodo | null>(null)
+  const navigate = useNavigate()
 
   return (
     <div className="dashboard">
@@ -13,18 +11,15 @@ function Dashboard() {
         Elige el método que prefieras para comenzar.
       </p>
       <div className="dashboard-buttons">
-        <button className="btn-metodo" onClick={() => setMetodo('simplex')}>
+        <button className="btn-metodo" onClick={() => navigate('/registrar/problema/simplex')}>
           <span className="btn-metodo-icon">⊞</span>
           Método Simplex
         </button>
-        <button className="btn-metodo" onClick={() => setMetodo('grafico')}>
+        <button className="btn-metodo" onClick={() => navigate('/registrar/problema/grafico')}>
           <span className="btn-metodo-icon">⊟</span>
           Método Gráfico
         </button>
       </div>
-      {metodo && (
-        <FloatingForm metodo={metodo} onClose={() => setMetodo(null)} />
-      )}
     </div>
   )
 }

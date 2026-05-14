@@ -63,11 +63,11 @@ function ResultadoSimplex() {
           {data.mensaje}
         </div>
 
-        {data.valor_fo && (
+        {data.valorFO && (
           <div className="result-info" style={{ marginBottom: 16 }}>
             <strong>Valor de Z:</strong>{' '}
             <span style={{ fontFamily: 'var(--mono)', fontSize: 16 }}>
-              {data.valor_fo}
+              {data.valorFO}
             </span>
           </div>
         )}
