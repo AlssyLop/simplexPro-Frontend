@@ -13,7 +13,7 @@ function ResultadoGrafico() {
     if (!id) return
     obtenerSolucionGrafica(id)
       .then(setData)
-      .catch((e) => setError(e.id ?? 'Error al cargar la solución'))
+      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'Error al cargar la solución'))
   }, [id])
 
   if (error) {
