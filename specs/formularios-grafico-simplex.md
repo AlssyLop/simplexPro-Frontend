@@ -203,8 +203,8 @@ El panel muestra, de forma legible y organizada:
 Al recibir una respuesta exitosa (`{ "id": "uuid" }`):
 
 - El usuario es **redirigido automáticamente** a la pantalla de resultado del problema:
-  - Método gráfico → `/problemas/{id}/grafica`
-  - Método simplex → `/problemas/{id}/simplex`
+  - Método gráfico → `/problema/{id}/grafica`
+  - Método simplex → `/problema/{id}/simplex`
 
 ---
 

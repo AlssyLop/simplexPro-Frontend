@@ -312,7 +312,7 @@ export default function RegistroSimplex() {
     try {
       const payload = buildPayload(form)
       const result = await registrarProblemaSimplex(payload)
-      navigate(`/problemas/${result.id}/simplex`)
+      navigate(`/problema/${result.id}/simplex`)
     } catch (err) {
       setShowSummary(false)
       if (err instanceof ApiRequestError) {

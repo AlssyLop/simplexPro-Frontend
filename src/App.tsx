@@ -11,8 +11,8 @@ function App() {
       <Route path="/" element={<Dashboard />} />
       <Route path="/registrar/problema/grafico" element={<RegistroGrafico />} />
       <Route path="/registrar/problema/simplex" element={<RegistroSimplex />} />
-      <Route path="/problemas/:id/grafica" element={<ResultadoGrafico />} />
-      <Route path="/problemas/:id/simplex" element={<ResultadoSimplex />} />
+      <Route path="/problema/:id/grafico" element={<ResultadoGrafico />} />
+      <Route path="/problema/:id/simplex" element={<ResultadoSimplex />} />
     </Routes>
   )
 }

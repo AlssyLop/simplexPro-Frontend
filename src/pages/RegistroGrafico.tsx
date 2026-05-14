@@ -192,7 +192,7 @@ export default function RegistroGrafico() {
     try {
       const payload = buildPayload(form)
       const result = await registrarProblemaGrafico(payload)
-      navigate(`/problemas/${result.id}/grafica`)
+      navigate(`/problema/${result.id}/grafico`)
     } catch (err) {
       setShowSummary(false)
       if (err instanceof ApiRequestError) {
