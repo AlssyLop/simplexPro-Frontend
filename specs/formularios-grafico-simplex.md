@@ -67,11 +67,9 @@ Cada ruta es una pantalla independiente. No existe una pantalla compartida que c
 |---------------------|---------------------------|-----------|--------------------------------------|
 | Coeficiente de `x`  | Número decimal            | Sí        | Ej: `2.0`                            |
 | Coeficiente de `y`  | Número decimal            | Sí        | Ej: `1.0`                            |
-| Signo               | Selección (`<=` / `>=`)   | Sí        | Solo estos dos signos en gráfico     |
-| Valor constante     | Número decimal            | Sí        | Ej: `10.0`                           |
+| Signo               | Selección (`<=` / `>=` / `=` )   | Sí        |    |
+| Constante           | Número decimal            | Sí        | Ej: `10.0`                           |
 | Glosa / Etiqueta    | Texto                     | No        | Ej: "Límite de madera"               |
-
-> **Regla de negocio:** El método gráfico no admite el signo `=` en las restricciones.
 
 ---
 
@@ -113,8 +111,8 @@ Por cada variable `x1..xn` definida:
 | Campo                           | Tipo                           | Requerido | Descripción |
 |---------------------------------|--------------------------------|-----------|-------------|
 | Coeficiente de `xi` (por variable) | Número decimal              | Sí        |             |
-| Signo                           | Selección (`<=` / `>=` / `=`) | Sí        | Los tres signos son válidos en simplex |
-| Valor constante                 | Número decimal                | Sí        |             |
+| Signo                           | Selección (`<=` / `>=` / `=`) | Sí        |              |
+| Constante                       | Número decimal                | Sí        |             |
 | Glosa / Etiqueta                | Texto                         | No        |             |
 
 ---
@@ -132,7 +130,7 @@ Los mensajes de error aparecen **justo debajo del campo** que falló.
 | Nombre de variable   | Requerido, no vacío por cada variable              |
 | Coeficiente numérico | Requerido, debe ser un número decimal válido       |
 | Signo de restricción | Requerido, debe ser uno de los valores permitidos  |
-| Valor constante      | Requerido, debe ser un número                      |
+| Constante            | Requerido, debe ser un número                      |
 | Tipo de optimización | Requerido, debe ser `max` o `min`                  |
 
 ### Reglas específicas — Método Gráfico
@@ -140,7 +138,6 @@ Los mensajes de error aparecen **justo debajo del campo** que falló.
 | Condición                      | Mensaje de error                               |
 |--------------------------------|------------------------------------------------|
 | Sin restricciones              | "Debes agregar al menos una restricción"       |
-| Signo diferente a `<=` o `>=` | "El método gráfico solo admite ≤ y ≥"          |
 
 ### Reglas específicas — Método Simplex
 
@@ -174,7 +171,7 @@ El panel muestra, de forma legible y organizada:
 - Título y descripción del problema.
 - Tipo de optimización y función objetivo en texto (ej: `MAX Z = 5x + 4y`).
 - Lista de variables con sus nombres descriptivos.
-- Lista de restricciones en formato de inecuación (ej: `2x + 1y ≤ 10 — Límite de madera`).
+- Lista de restricciones en formato de inecuación (ej: `2x + 1y ≤ 10 (Límite de madera)`).
 
 ### 6.4 Acción de envío
 
@@ -244,7 +241,7 @@ POST /problemas/registrar?metodo=simplex
   "variables": { "x": "Nombre X", "y": "Nombre Y" },
   "funcion_objetivo": { "x": 5.0, "y": 4.0, "tipo": "max" },
   "restricciones": [
-    { "x": 2.0, "y": 1.0, "signo": "<=", "valor": 10.0, "glosa": "string (opcional)" }
+    { "x": 2.0, "y": 1.0, "signo": "<=", "constante": 10.0, "glosa": "string (opcional)" }
   ]
 }
 ```
@@ -256,9 +253,23 @@ POST /problemas/registrar?metodo=simplex
   "titulo": "string",
   "descripcion": "string (opcional)",
   "variables": { "x1": "Nombre 1", "x2": "Nombre 2" },
-  "funcion_objetivo": { "x1": 10.0, "x2": 15.0, "tipo": "max" },
+  "funcion_objetivo": { 
+    "lista_terminos": [
+      { "coeficiente": 10.0, "variable": "x1" },
+      { "coeficiente": 15.0, "variable": "x2" }
+    ], 
+    "tipo": "max" 
+  },
   "restricciones": [
-    { "x1": 1.0, "x2": 1.0, "signo": "<=", "valor": 50.0, "glosa": "string (opcional)" }
+    { 
+      "lista_terminos": [
+        { "coeficiente": 1.0, "variable": "x1" },
+        { "coeficiente": 1.0, "variable": "x2" }
+      ], 
+      "signo": "<=", 
+      "constante": 50.0, 
+      "glosa": "string (opcional)" 
+    }
   ]
 }
 ```
