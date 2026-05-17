@@ -144,25 +144,21 @@ function buildPayload(data: SimplexFormData): ApiPayloadSimplex {
     variables: variablesMap,
     funcion_objetivo: {
       tipo: data.foTipo,
-      lista_terminos: data.foTerminos.map(fo => {
+      terminos: data.foTerminos.reduce((acc, fo) => {
         const variable = data.variables.find(v => v.id === fo.variableId)!
-        return {
-          variable: variable.nombre,
-          coeficiente: fo.coeficiente
-        }
-      })
+        acc[variable.nombre] = fo.coeficiente
+        return acc
+      }, {} as Record<string, number>)
     },
     restricciones: data.restricciones.map(r => ({
       signo: r.signo,
       constante: r.constante,
       glosa: r.glosa.trim() || undefined,
-      lista_terminos: r.coeficientes.map(c => {
+      terminos: r.coeficientes.reduce((acc, c) => {
         const variable = data.variables.find(v => v.id === c.variableId)!
-        return {
-          variable: variable.nombre,
-          coeficiente: c.coeficiente
-        }
-      })
+        acc[variable.nombre] = c.coeficiente
+        return acc
+      }, {} as Record<string, number>)
     }))
   }
 }
