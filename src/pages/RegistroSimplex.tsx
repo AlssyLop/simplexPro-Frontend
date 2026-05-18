@@ -372,7 +372,7 @@ export default function RegistroSimplex() {
           <FormInput
             label="Título *"
             type="text"
-            placeholder="Ej: Problema de dieta"
+            placeholder="Ej: Problema de producción"
             value={form.titulo}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setForm(prev => ({ ...prev, titulo: e.target.value }))}
             error={errors['titulo']}
