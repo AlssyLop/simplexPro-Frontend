@@ -55,7 +55,7 @@ function ResultadoGrafico() {
           <h2>{data.titulo}</h2>
           {data.descripcion && <p className="subtitulo">{data.descripcion}</p>}
           <p style={{ fontFamily: 'var(--mono)', fontSize: 15, margin: 0 }}>
-            Z = {data.tipoOptimizacion.toUpperCase()} ({data.funcion_objetivo})
+            {data.funcion_objetivo}
           </p>
         </div>
 
