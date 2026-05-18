@@ -96,14 +96,14 @@ export interface ApiPayloadGrafico {
 }
 
 export interface ApiRestriccionSimplex {
-  lista_terminos: ApiTermino[]
+  terminos: Record<string, number>
   signo: Signo
   constante: number
   glosa?: string
 }
 
 export interface ApiFuncionObjetivoSimplex {
-  lista_terminos: ApiTermino[]
+  terminos: Record<string, number>
   tipo: Optimizacion
 }
 
