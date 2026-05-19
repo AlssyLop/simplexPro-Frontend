@@ -204,8 +204,10 @@ button:disabled {
   transform: translateY(-2px);
 }
 
-.btn-metodo-icon {
-  font-size: 32px;
+.btn-metodo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
 }
 
 .dashboard-content h2 {
@@ -288,6 +290,11 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.problem-card-footer button{
+  font-size: 18px;
+  padding: 4px 8px;
 }
 
 .problem-date {

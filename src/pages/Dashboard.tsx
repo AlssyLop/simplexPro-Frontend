@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { listarProblemas, eliminarProblema } from '../api/client'
 import type { ResumenProblema } from '../types'
+import iconoSimplex from '../assets/iconoSimplex.png'
+import iconoGrafico from '../assets/iconoGrafico.png'
 
 function Dashboard() {
   const navigate = useNavigate()
   const [problemas, setProblemas] = useState<ResumenProblema[]>([])
-  const [loading, setLoading] = useState(true) // Inicialmente en true
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   const cargarProblemas = () => {
@@ -24,7 +26,6 @@ function Dashboard() {
   }
 
   useEffect(() => {
-    // Al montar, el loading ya es true, así que solo disparamos el fetch
     listarProblemas(1)
       .then((list) => {
         setProblemas(list)
@@ -61,11 +62,11 @@ function Dashboard() {
         </div>
         <div className="dashboard-buttons">
           <button className="btn-metodo" onClick={() => navigate('/registrar/problema/simplex')}>
-            <span className="btn-metodo-icon">⊞</span>
+            <img src={iconoSimplex} alt="Método Simplex" className="btn-metodo-img" />
             Método Simplex
           </button>
           <button className="btn-metodo" onClick={() => navigate('/registrar/problema/grafico')}>
-            <span className="btn-metodo-icon">⊟</span>
+            <img src={iconoGrafico} alt="Método Gráfico" className="btn-metodo-img" />
             Método Gráfico
           </button>
         </div>
@@ -104,8 +105,8 @@ function Dashboard() {
                   <span className="problem-date">
                     {new Date(p.fechaCreacion).toLocaleDateString()}
                   </span>
-                  <button 
-                    className="btn-danger btn-sm btn-icon" 
+                  <button
+                    className="btn-danger btn-sm btn-icon"
                     onClick={(e) => handleEliminar(p.id, e)}
                     title="Eliminar problema"
                   >
