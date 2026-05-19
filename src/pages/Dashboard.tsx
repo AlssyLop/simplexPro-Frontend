@@ -5,6 +5,8 @@ import type { ResumenProblema } from '../types'
 import iconoSimplex from '../assets/iconoSimplex.png'
 import iconoGrafico from '../assets/iconoGrafico.png'
 import basurero from '../assets/basurero.png'
+import ConfirmModal from '../components/ConfirmModal'
+import Toast from '../components/Toast'
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -12,6 +14,8 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
+  const [confirmId, setConfirmId] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
   const cargarProblemas = (p: number) => {
     setLoading(true)
@@ -39,18 +43,25 @@ function Dashboard() {
       })
   }, [page])
 
-  const handleEliminar = async (id: string, e: React.MouseEvent) => {
+  const handleEliminarClick = (id: string, e: React.MouseEvent) => {
     e.stopPropagation() // Evitar que el clic abra la tarjeta
-    if (!window.confirm('¿Seguro que deseas eliminar este problema?')) return
+    setConfirmId(id)
+  }
+
+  const ejecutarEliminacion = async () => {
+    if (!confirmId) return
     try {
-      await eliminarProblema(id)
+      await eliminarProblema(confirmId)
+      setToast({ message: 'Problema eliminado correctamente.', type: 'success' })
       if (problemas.length === 1 && page > 1) {
         setPage((prev) => prev - 1)
       } else {
         cargarProblemas(page)
       }
     } catch {
-      alert('Error al eliminar')
+      setToast({ message: 'Error al eliminar el problema.', type: 'error' })
+    } finally {
+      setConfirmId(null)
     }
   }
 
@@ -114,7 +125,7 @@ function Dashboard() {
                     </span>
                     <button
                       className="btn-danger btn-sm"
-                      onClick={(e) => handleEliminar(p.id, e)}
+                      onClick={(e) => handleEliminarClick(p.id, e)}
                       title="Eliminar problema"
                     >
                       <img src={basurero} alt="eliminar" className="basurero-img"/>
@@ -144,6 +155,22 @@ function Dashboard() {
           </>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={confirmId !== null}
+        title="¿Eliminar problema?"
+        message="Esta acción no se puede deshacer. El problema se borrará permanentemente."
+        onConfirm={ejecutarEliminacion}
+        onCancel={() => setConfirmId(null)}
+      />
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   )
 }
