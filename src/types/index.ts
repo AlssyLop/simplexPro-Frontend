@@ -135,6 +135,7 @@ export interface ResumenProblema {
   titulo: string
   descripcion: string | null
   tipoOptimizacion: 'MAX' | 'MIN'
+  metodo: string
   fechaCreacion: string
 }
 
@@ -143,6 +144,7 @@ export interface MostrarResultadoGrafico {
   titulo: string
   descripcion: string | null
   tipoOptimizacion: 'MAX' | 'MIN'
+  metodo: string
   fechaCreacion: string
   funcion_objetivo: string
   mensaje: string
@@ -166,6 +168,7 @@ export interface MostrarResultadoSimplex {
   titulo: string
   descripcion: string | null
   tipoOptimizacion: 'MAX' | 'MIN'
+  metodo: string
   fechaCreacion: string
   funcion_objetivo: string
   mensaje: string

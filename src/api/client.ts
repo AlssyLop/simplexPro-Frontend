@@ -70,12 +70,12 @@ export async function registrarProblemaSimplex(
 }
 
 export async function obtenerSolucionGrafica(id: string): Promise<MostrarResultadoGrafico> {
-  const res = await fetch(`${API}/problemas/${id}/grafica`)
+  const res = await fetch(`${API}/problemas/${id}`)
   return handleResponse<MostrarResultadoGrafico>(res)
 }
 
 export async function obtenerSolucionSimplex(id: string): Promise<MostrarResultadoSimplex> {
-  const res = await fetch(`${API}/problemas/${id}/simplex`)
+  const res = await fetch(`${API}/problemas/${id}`)
   return handleResponse<MostrarResultadoSimplex>(res)
 }
 
