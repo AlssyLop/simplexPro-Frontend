@@ -4,17 +4,19 @@ import { listarProblemas, eliminarProblema } from '../api/client'
 import type { ResumenProblema } from '../types'
 import iconoSimplex from '../assets/iconoSimplex.png'
 import iconoGrafico from '../assets/iconoGrafico.png'
+import basurero from '../assets/basurero.png'
 
 function Dashboard() {
   const navigate = useNavigate()
   const [problemas, setProblemas] = useState<ResumenProblema[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
 
-  const cargarProblemas = () => {
+  const cargarProblemas = (p: number) => {
     setLoading(true)
     setError(null)
-    listarProblemas(1)
+    listarProblemas(p)
       .then((list) => {
         setProblemas(list)
         setLoading(false)
@@ -26,7 +28,7 @@ function Dashboard() {
   }
 
   useEffect(() => {
-    listarProblemas(1)
+    listarProblemas(page)
       .then((list) => {
         setProblemas(list)
         setLoading(false)
@@ -35,14 +37,18 @@ function Dashboard() {
         setError('No se pudieron cargar los problemas.')
         setLoading(false)
       })
-  }, [])
+  }, [page])
 
   const handleEliminar = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation() // Evitar que el clic abra la tarjeta
     if (!window.confirm('¿Seguro que deseas eliminar este problema?')) return
     try {
       await eliminarProblema(id)
-      setProblemas((prev) => prev.filter((p) => p.id !== id))
+      if (problemas.length === 1 && page > 1) {
+        setPage((prev) => prev - 1)
+      } else {
+        cargarProblemas(page)
+      }
     } catch {
       alert('Error al eliminar')
     }
@@ -79,43 +85,63 @@ function Dashboard() {
         
         {error && (
           <div className="result-mensaje error">
-            {error} <button onClick={() => cargarProblemas()} className="btn-secondary btn-sm">Reintentar</button>
+            {error} <button onClick={() => cargarProblemas(page)} className="btn-secondary btn-sm">Reintentar</button>
           </div>
         )}
 
         {!loading && !error && problemas.length === 0 && (
           <div className="result-mensaje">
-            Aún no has creado ningún problema. ¡Empieza creando uno nuevo!
+            {page > 1 ? 'No hay más problemas en esta página.' : 'Aún no has creado ningún problema. ¡Empieza creando uno nuevo!'}
           </div>
         )}
 
         {!loading && !error && problemas.length > 0 && (
-          <div className="dashboard-grid">
-            {problemas.map((p) => (
-              <div key={p.id} className="problem-card" onClick={() => irAlProblema(p)}>
-                <div className="problem-card-header">
-                  <h3>{p.titulo}</h3>
-                  <div className="problem-badges">
-                    <span className={`badge badge-${p.metodo.toLowerCase()}`}>{p.metodo}</span>
-                    <span className={`badge badge-${p.tipoOptimizacion.toLowerCase()}`}>{p.tipoOptimizacion}</span>
+          <>
+            <div className="dashboard-grid">
+              {problemas.map((p) => (
+                <div key={p.id} className="problem-card" onClick={() => irAlProblema(p)}>
+                  <div className="problem-card-header">
+                    <h3>{p.titulo}</h3>
+                    <div className="problem-badges">
+                      <span className={`badge badge-${p.metodo.toLowerCase()}`}>{p.metodo}</span>
+                      <span className={`badge badge-${p.tipoOptimizacion.toLowerCase()}`}>{p.tipoOptimizacion}</span>
+                    </div>
+                  </div>
+                  {p.descripcion && <p className="problem-desc">{p.descripcion}</p>}
+                  <div className="problem-card-footer">
+                    <span className="problem-date">
+                      {new Date(p.fechaCreacion).toLocaleDateString()}
+                    </span>
+                    <button
+                      className="btn-danger btn-sm"
+                      onClick={(e) => handleEliminar(p.id, e)}
+                      title="Eliminar problema"
+                    >
+                      <img src={basurero} alt="eliminar" className="basurero-img"/>
+                    </button>
                   </div>
                 </div>
-                {p.descripcion && <p className="problem-desc">{p.descripcion}</p>}
-                <div className="problem-card-footer">
-                  <span className="problem-date">
-                    {new Date(p.fechaCreacion).toLocaleDateString()}
-                  </span>
-                  <button
-                    className="btn-danger btn-sm btn-icon"
-                    onClick={(e) => handleEliminar(p.id, e)}
-                    title="Eliminar problema"
-                  >
-                    🗑
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            <div className="pagination">
+              <button
+                className="btn-secondary btn-sm"
+                disabled={page === 1}
+                onClick={() => setPage((prev) => prev - 1)}
+              >
+                Anterior
+              </button>
+              <span className="pagination-info">Página {page}</span>
+              <button
+                className="btn-secondary btn-sm"
+                disabled={problemas.length < 10}
+                onClick={() => setPage((prev) => prev + 1)}
+              >
+                Siguiente
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>
