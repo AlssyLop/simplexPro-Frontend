@@ -8,12 +8,15 @@ import basurero from '../assets/basurero.png'
 import ConfirmModal from '../components/ConfirmModal'
 import Toast from '../components/Toast'
 
+const ITEMS_POR_PAGINA = 6
+
 function Dashboard() {
   const navigate = useNavigate()
   const [problemas, setProblemas] = useState<ResumenProblema[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
+  const [hasNext, setHasNext] = useState(false)
   const [confirmId, setConfirmId] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
 
@@ -23,6 +26,7 @@ function Dashboard() {
     listarProblemas(p)
       .then((list) => {
         setProblemas(list)
+        setHasNext(list.length >= ITEMS_POR_PAGINA)
         setLoading(false)
       })
       .catch(() => {
@@ -35,6 +39,7 @@ function Dashboard() {
     listarProblemas(page)
       .then((list) => {
         setProblemas(list)
+        setHasNext(list.length >= ITEMS_POR_PAGINA)
         setLoading(false)
       })
       .catch(() => {
@@ -146,7 +151,7 @@ function Dashboard() {
               <span className="pagination-info">Página {page}</span>
               <button
                 className="btn-secondary btn-sm"
-                disabled={problemas.length < 10}
+                disabled={!hasNext}
                 onClick={() => setPage((prev) => prev + 1)}
               >
                 Siguiente

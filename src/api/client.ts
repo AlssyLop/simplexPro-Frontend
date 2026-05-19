@@ -41,10 +41,10 @@ async function handleResponse<T>(res: Response): Promise<T> {
 // Endpoints
 // ---------------------------------------------------------------------------
 
-export async function listarProblemas(page = 1): Promise<ResumenProblema[]> {
+export async function listarProblemas(page: number): Promise<ResumenProblema[]> {
   const res = await fetch(`${API}/problemas?page=${page}`)
-  const data = await handleResponse<{ problemas: ResumenProblema[] }>(res)
-  return data.problemas
+  const data = await handleResponse<ResumenProblema[]>(res)
+  return data
 }
 
 export async function registrarProblemaGrafico(
