@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import type { ChangeEvent } from 'react'
 import type {
   SimplexFormData,
@@ -14,8 +14,14 @@ import type {
 import {
   crearSimplexFormDataVacia,
   generarId,
+  mapApiToSimplexFormData,
 } from '../types'
-import { registrarProblemaSimplex, ApiRequestError } from '../api/client'
+import {
+  obtenerSolucionSimplex,
+  registrarProblemaSimplex,
+  actualizarProblemaSimplex,
+  ApiRequestError,
+} from '../api/client'
 import { FormInput } from '../components/FormInput'
 import { FormSelect } from '../components/FormSelect'
 import { SummaryModal } from '../components/SummaryModal'
@@ -169,8 +175,9 @@ function buildPayload(data: SimplexFormData): ApiPayloadSimplex {
 
 export default function RegistroSimplex() {
   const navigate = useNavigate()
-  
-  // Estado inicial: 2 variables, 1 restricción
+  const { id } = useParams<{ id: string }>()
+  const esEdicion = !!id
+
   const [form, setForm] = useState<SimplexFormData>(() => {
     const base = crearSimplexFormDataVacia()
     const { variables, foTerminos } = inicializarVariables(2)
@@ -186,6 +193,37 @@ export default function RegistroSimplex() {
   const [serverError, setServerError] = useState('')
   const [showSummary, setShowSummary] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [loading, setLoading] = useState(esEdicion)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  // --- Carga de datos en modo edición ---
+
+  useEffect(() => {
+    if (!id) return
+    obtenerSolucionSimplex(id)
+      .then((res) => {
+        setForm(mapApiToSimplexFormData(res))
+        setLoading(false)
+      })
+      .catch((e: unknown) => {
+        if (e instanceof ApiRequestError && e.status === 404) {
+          setLoadError('El problema que intentas editar no existe.')
+        } else {
+          setLoadError('No se pudieron cargar los datos del problema.')
+        }
+        setLoading(false)
+      })
+  }, [id])
+
+  function handleRetry() {
+    if (!id) return
+    setLoading(true)
+    setLoadError(null)
+    obtenerSolucionSimplex(id)
+      .then((res) => setForm(mapApiToSimplexFormData(res)))
+      .catch(() => setLoadError('No se pudieron cargar los datos del problema.'))
+      .finally(() => setLoading(false))
+  }
 
   // --- Modificación de Estructura ---
 
@@ -307,8 +345,13 @@ export default function RegistroSimplex() {
     setIsSubmitting(true)
     try {
       const payload = buildPayload(form)
-      const result = await registrarProblemaSimplex(payload)
-      navigate(`/problema/${result.id}/simplex`)
+      if (id) {
+        await actualizarProblemaSimplex(id, payload)
+        navigate(`/problema/${id}/simplex`)
+      } else {
+        const result = await registrarProblemaSimplex(payload)
+        navigate(`/problema/${result.id}/simplex`)
+      }
     } catch (err) {
       setShowSummary(false)
       if (err instanceof ApiRequestError) {
@@ -351,6 +394,37 @@ export default function RegistroSimplex() {
   }
 
   // --- Render ---
+
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="page-header">
+          <h1>Método Simplex</h1>
+          <button type="button" onClick={() => navigate('/')}>Volver</button>
+        </div>
+        <div className="loading">Cargando datos del problema...</div>
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="page">
+        <div className="page-header">
+          <h1>Método Simplex</h1>
+          <button type="button" onClick={() => navigate('/')}>Volver</button>
+        </div>
+        <div className="page-content">
+          <div className="result-mensaje error">
+            {loadError}
+            <button onClick={handleRetry} className="btn-secondary btn-sm" style={{ marginLeft: 12 }}>
+              Reintentar
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="page">

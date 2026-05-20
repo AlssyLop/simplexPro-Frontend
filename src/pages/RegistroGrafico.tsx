@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import type { ChangeEvent } from 'react'
 import type {
   GraficoFormData,
@@ -12,8 +12,14 @@ import type {
 import {
   crearGraficoFormDataVacia,
   crearRestriccionGrafica,
+  mapApiToGraficoFormData,
 } from '../types'
-import { registrarProblemaGrafico, ApiRequestError } from '../api/client'
+import {
+  obtenerSolucionGrafica,
+  registrarProblemaGrafico,
+  actualizarProblemaGrafico,
+  ApiRequestError,
+} from '../api/client'
 import { FormInput } from '../components/FormInput'
 import { FormSelect } from '../components/FormSelect'
 import { SummaryModal } from '../components/SummaryModal'
@@ -121,11 +127,45 @@ function buildPayload(data: GraficoFormData): ApiPayloadGrafico {
 
 export default function RegistroGrafico() {
   const navigate = useNavigate()
-  const [form, setForm] = useState<GraficoFormData>(crearGraficoFormDataVacia)
+  const { id } = useParams<{ id: string }>()
+  const esEdicion = !!id
+
+  const [form, setForm] = useState<GraficoFormData>(crearGraficoFormDataVacia())
   const [errors, setErrors] = useState<FormErrors>({})
   const [serverError, setServerError] = useState('')
   const [showSummary, setShowSummary] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [loading, setLoading] = useState(esEdicion)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  // --- Carga de datos en modo edición ---
+
+  useEffect(() => {
+    if (!id) return
+    obtenerSolucionGrafica(id)
+      .then((res) => {
+        setForm(mapApiToGraficoFormData(res))
+        setLoading(false)
+      })
+      .catch((e: unknown) => {
+        if (e instanceof ApiRequestError && e.status === 404) {
+          setLoadError('El problema que intentas editar no existe.')
+        } else {
+          setLoadError('No se pudieron cargar los datos del problema.')
+        }
+        setLoading(false)
+      })
+  }, [id])
+
+  function handleRetry() {
+    if (!id) return
+    setLoading(true)
+    setLoadError(null)
+    obtenerSolucionGrafica(id)
+      .then((res) => setForm(mapApiToGraficoFormData(res)))
+      .catch(() => setLoadError('No se pudieron cargar los datos del problema.'))
+      .finally(() => setLoading(false))
+  }
 
   // --- Helpers de actualización ---
 
@@ -191,8 +231,13 @@ export default function RegistroGrafico() {
     setIsSubmitting(true)
     try {
       const payload = buildPayload(form)
-      const result = await registrarProblemaGrafico(payload)
-      navigate(`/problema/${result.id}/grafico`)
+      if (id) {
+        await actualizarProblemaGrafico(id, payload)
+        navigate(`/problema/${id}/grafico`)
+      } else {
+        const result = await registrarProblemaGrafico(payload)
+        navigate(`/problema/${result.id}/grafico`)
+      }
     } catch (err) {
       setShowSummary(false)
       if (err instanceof ApiRequestError) {
@@ -223,6 +268,37 @@ export default function RegistroGrafico() {
   }
 
   // --- Render ---
+
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="page-header">
+          <h1>Método Gráfico</h1>
+          <button type="button" onClick={() => navigate('/')}>Volver</button>
+        </div>
+        <div className="loading">Cargando datos del problema...</div>
+      </div>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <div className="page">
+        <div className="page-header">
+          <h1>Método Gráfico</h1>
+          <button type="button" onClick={() => navigate('/')}>Volver</button>
+        </div>
+        <div className="page-content">
+          <div className="result-mensaje error">
+            {loadError}
+            <button onClick={handleRetry} className="btn-secondary btn-sm" style={{ marginLeft: 12 }}>
+              Reintentar
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="page">
