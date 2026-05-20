@@ -44,6 +44,17 @@ export interface SimplexFormData {
   restricciones: SimplexRestriccion[]
 }
 
+export interface GraficoFormData {
+  titulo: string
+  descripcion: string
+  nombreX: string
+  nombreY: string
+  foTipo: Optimizacion
+  foCoefX: number
+  foCoefY: number
+  restricciones: GraficoRestriccion[]
+  }
+
 export interface GraficoRestriccion {
   id: string
   coefX: number
@@ -110,6 +121,26 @@ export interface ApiFuncionObjetivoSimplex {
 export interface ApiPayloadSimplex {
   titulo: string
   descripcion?: string
+  variables: Record<string, string>
+  funcion_objetivo: ApiFuncionObjetivoSimplex
+  restricciones: ApiRestriccionSimplex[]
+}
+
+// ---------------------------------------------------------------------------
+// Datos editables (GET /problemas/{id} para cargar en formulario)
+// ---------------------------------------------------------------------------
+
+export interface ProblemaGraficoEditable {
+  titulo: string
+  descripcion: string | null
+  variables: { x: string; y: string }
+  funcion_objetivo: ApiFuncionObjetivoGrafico
+  restricciones: ApiRestriccionGrafico[]
+}
+
+export interface ProblemaSimplexEditable {
+  titulo: string
+  descripcion: string | null
   variables: Record<string, string>
   funcion_objetivo: ApiFuncionObjetivoSimplex
   restricciones: ApiRestriccionSimplex[]
@@ -233,5 +264,119 @@ export function crearRestriccionSimplex(variables: SimplexVariable[]): SimplexRe
     signo: '<=',
     constante: 0,
     glosa: '',
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mapeo de API → FormData (para edición)
+// ---------------------------------------------------------------------------
+
+const FO_PARSE = /^(MAX|MIN)\s+Z\s*=\s*(-?\d+(?:\.\d+)?)\s*x\s*([+-])\s*(\d+(?:\.\d+)?)\s*y$/
+const REST_PARSE = /^([+-]?\d+(?:\.\d+)?)\s*x\s*([+-])\s*(\d+(?:\.\d+)?)\s*y\s*(<=|>=|=)\s*(\d+(?:\.\d+)?)$/
+
+function parseFO(fo: string, tipoOptimizacion: 'MAX' | 'MIN'): { foTipo: Optimizacion; foCoefX: number; foCoefY: number } {
+  const m = fo.match(FO_PARSE)
+  if (m) {
+    return {
+      foTipo: m[1] === 'MIN' ? 'min' : 'max',
+      foCoefX: Number(m[2]),
+      foCoefY: m[3] === '-' ? -Number(m[4]) : Number(m[4]),
+    }
+  }
+  return { foTipo: tipoOptimizacion === 'MIN' ? 'min' : 'max', foCoefX: 0, foCoefY: 0 }
+}
+
+function parseRestriccion(inecuacion: string, glosa: string | null): GraficoRestriccion {
+  const m = inecuacion.match(REST_PARSE)
+  if (m) {
+    const coefY = m[2] === '-' ? -Number(m[3]) : Number(m[3])
+    return {
+      id: generarId(),
+      coefX: Number(m[1]),
+      coefY,
+      signo: m[4] as Signo,
+      constante: Number(m[5]),
+      glosa: glosa ?? '',
+    }
+  }
+  return crearRestriccionGrafica()
+}
+
+export function mapApiToGraficoFormData(res: MostrarResultadoGrafico): GraficoFormData {
+  const { foTipo, foCoefX, foCoefY } = parseFO(res.funcion_objetivo, res.tipoOptimizacion)
+  return {
+    titulo: res.titulo,
+    descripcion: res.descripcion ?? '',
+    nombreX: res.variables.x,
+    nombreY: res.variables.y,
+    foTipo,
+    foCoefX,
+    foCoefY,
+    restricciones: res.restricciones.map((r) => parseRestriccion(r.inecuacion, r.glosa)),
+  }
+}
+
+const REST_SIMPLEX = /^(.*?)\s*(<=|>=|=)\s*(\d+(?:\.\d+)?)$/
+
+function extractCoef(expr: string, key: string): number {
+  const re = new RegExp(`([+-]?\\d+(?:\\.\\d+)?)\\s*${key}`)
+  const m = expr.match(re)
+  return m ? Number(m[1]) : 0
+}
+
+function parseRestriccionSimplex(
+  inecuacion: string,
+  _glosa: string | null,
+  keys: string[],
+): { terminos: Record<string, number>; signo: Signo; constante: number } {
+  const m = inecuacion.match(REST_SIMPLEX)
+  if (m) {
+    const expr = m[1].trim()
+    const terminos: Record<string, number> = {}
+    for (const key of keys) {
+      terminos[key] = extractCoef(expr, key)
+    }
+    return { terminos, signo: m[2] as Signo, constante: Number(m[3]) }
+  }
+  return { terminos: {}, signo: '<=' as Signo, constante: 0 }
+}
+
+export function mapApiToSimplexFormData(res: MostrarResultadoSimplex): SimplexFormData {
+  const keys = Object.keys(res.variables).sort()
+  const variables: SimplexVariable[] = keys.map((k) => ({
+    id: generarId(),
+    nombre: k,
+    nombrePersonalizado: res.variables[k],
+  }))
+
+  const varPorNombre = new Map<string, string>()
+  keys.forEach((k, i) => varPorNombre.set(k, variables[i].id))
+
+  const foTipo: Optimizacion = res.tipoOptimizacion === 'MIN' ? 'min' : 'max'
+
+  return {
+    titulo: res.titulo,
+    descripcion: res.descripcion ?? '',
+    variables,
+    foTipo,
+    foTerminos: keys.map((k) => ({
+      id: generarId(),
+      variableId: varPorNombre.get(k)!,
+      coeficiente: extractCoef(res.funcion_objetivo, k),
+    })),
+    restricciones: res.restricciones.map((r) => {
+      const parsed = parseRestriccionSimplex(r.inecuacion, r.glosa, keys)
+      return {
+        id: generarId(),
+        coeficientes: keys.map((k) => ({
+          id: generarId(),
+          variableId: varPorNombre.get(k)!,
+          coeficiente: parsed.terminos[k] ?? 0,
+        })),
+        signo: parsed.signo,
+        constante: parsed.constante,
+        glosa: r.glosa ?? '',
+      }
+    }),
   }
 }
