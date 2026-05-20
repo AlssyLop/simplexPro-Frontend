@@ -69,6 +69,30 @@ export async function registrarProblemaSimplex(
   return handleResponse<{ id: string }>(res)
 }
 
+export async function actualizarProblemaGrafico(
+  id: string,
+  payload: ApiPayloadGrafico,
+): Promise<{ mensaje: string }> {
+  const res = await fetch(`${API}/problemas/actualizar?metodo=grafico&id=${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  return handleResponse<{ mensaje: string }>(res)
+}
+
+export async function actualizarProblemaSimplex(
+  id: string,
+  payload: ApiPayloadSimplex,
+): Promise<{ mensaje: string }> {
+  const res = await fetch(`${API}/problemas/actualizar?metodo=simplex&id=${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  return handleResponse<{ mensaje: string }>(res)
+}
+
 export async function obtenerSolucionGrafica(id: string): Promise<MostrarResultadoGrafico> {
   const res = await fetch(`${API}/problemas/${id}`)
   return handleResponse<MostrarResultadoGrafico>(res)
