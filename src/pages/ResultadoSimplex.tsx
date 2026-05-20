@@ -48,7 +48,10 @@ function ResultadoSimplex() {
     <div className="result-page">
       <div className="page-header">
         <h1>OptimaPL</h1>
-        <button onClick={() => navigate('/')}>Volver</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => navigate(`/editar/problema/${id}/simplex`)}>Editar</button>
+          <button onClick={() => navigate('/')}>Volver</button>
+        </div>
       </div>
       <div className="result-content">
         <div className="result-info">
