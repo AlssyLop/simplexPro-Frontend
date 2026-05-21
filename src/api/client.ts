@@ -4,6 +4,8 @@ import type {
   MostrarResultadoGrafico,
   MostrarResultadoSimplex,
   ResumenProblema,
+  ProblemaGraficoEditable,
+  ProblemaSimplexEditable,
 } from '../types'
 
 const API = ''
@@ -67,6 +69,11 @@ export async function registrarProblemaSimplex(
     body: JSON.stringify(payload),
   })
   return handleResponse<{ id: string }>(res)
+}
+
+export async function obtenerFormulario(id: string): Promise<ProblemaGraficoEditable | ProblemaSimplexEditable> {
+  const res = await fetch(`${API}/problemas/${id}/formulario`)
+  return await handleResponse<ProblemaGraficoEditable | ProblemaSimplexEditable>(res)
 }
 
 export async function actualizarProblemaGrafico(

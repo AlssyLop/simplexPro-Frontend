@@ -8,6 +8,7 @@ import type {
   ApiPayloadGrafico,
   Signo,
   Optimizacion,
+  ProblemaGraficoEditable,
 } from '../types'
 import {
   crearGraficoFormDataVacia,
@@ -15,7 +16,7 @@ import {
   mapApiToGraficoFormData,
 } from '../types'
 import {
-  obtenerSolucionGrafica,
+  obtenerFormulario,
   registrarProblemaGrafico,
   actualizarProblemaGrafico,
   ApiRequestError,
@@ -142,8 +143,8 @@ export default function RegistroGrafico() {
 
   useEffect(() => {
     if (!id) return
-    obtenerSolucionGrafica(id)
-      .then((res) => {
+    obtenerFormulario(id)
+      .then((res: ProblemaGraficoEditable) => {
         setForm(mapApiToGraficoFormData(res))
         setLoading(false)
       })
@@ -161,8 +162,8 @@ export default function RegistroGrafico() {
     if (!id) return
     setLoading(true)
     setLoadError(null)
-    obtenerSolucionGrafica(id)
-      .then((res) => setForm(mapApiToGraficoFormData(res)))
+    obtenerFormulario(id)
+      .then((res: ProblemaGraficoEditable) => setForm(mapApiToGraficoFormData(res)))
       .catch(() => setLoadError('No se pudieron cargar los datos del problema.'))
       .finally(() => setLoading(false))
   }
