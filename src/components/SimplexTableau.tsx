@@ -7,9 +7,30 @@ interface Props {
 
 function SimplexTableau({ iteracion, esUltima }: Props) {
   const { tabla } = iteracion
-
   const columnas = Object.keys(tabla)
   const filaCount = tabla[columnas[0]]?.length ?? 0
+
+  const colPivote = !esUltima && iteracion.entra
+    ? columnas.indexOf(iteracion.entra)
+    : -1
+
+  const filaPivote = !esUltima && iteracion.sale && tabla.base
+    ? tabla.base.indexOf(iteracion.sale)
+    : -1
+
+  function className(fila: number): string {
+    const classes: string[] = []
+    if (tabla.base?.[fila] === 'Z') classes.push('fila-z')
+    if (fila === filaPivote) classes.push('fila-pivote')
+    return classes.join(' ')
+  }
+
+  function cellClass(col: number, fila: number): string {
+    const classes: string[] = []
+    if (col === colPivote) classes.push('col-pivote')
+    if (col === colPivote && fila === filaPivote) classes.push('celda-pivote')
+    return classes.join(' ')
+  }
 
   return (
     <div className="iteracion">
@@ -29,16 +50,18 @@ function SimplexTableau({ iteracion, esUltima }: Props) {
         <table className="tableau">
           <thead>
             <tr>
-              {columnas.map((col) => (
-                <th key={col}>{col}</th>
+              {columnas.map((col, i) => (
+                <th key={col} className={i === colPivote ? 'col-pivote' : ''}>{col}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {Array.from({ length: filaCount }, (_, i) => (
-              <tr key={i} className={tabla.base?.[i] === 'Z' ? 'fila-z' : ''}>
-                {columnas.map((col) => (
-                  <td key={col}>{tabla[col]?.[i] ?? ''}</td>
+              <tr key={i} className={className(i)}>
+                {columnas.map((col, j) => (
+                  <td key={col} className={cellClass(j, i)}>
+                    {tabla[col]?.[i] ?? ''}
+                  </td>
                 ))}
               </tr>
             ))}

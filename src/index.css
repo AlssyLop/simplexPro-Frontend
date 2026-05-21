@@ -863,6 +863,20 @@ button:disabled {
   border-top: 2px solid var(--color-border);
 }
 
+.tableau .col-pivote {
+  background: #fefce8 !important;
+}
+
+.tableau tr.fila-pivote td {
+  background: #fef2f2 !important;
+}
+
+.tableau .celda-pivote {
+  background: #fed7aa !important;
+  font-weight: 700;
+  color: #9a3412;
+}
+
 /* State displays */
 .loading {
   display: flex;
