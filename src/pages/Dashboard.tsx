@@ -95,19 +95,19 @@ function Dashboard() {
       </div>
 
       <div className="dashboard-content">
-        <h2>Problemas Recientes</h2>
+        <h2 className="dashboard-section-title">Problemas Recientes</h2>
         
-        {loading && <div className="result-mensaje">Cargando problemas...</div>}
+        {loading && <div className="loading" style={{ padding: '40px 0' }}>Cargando problemas...</div>}
         
         {error && (
-          <div className="result-mensaje error">
-            {error} <button onClick={() => cargarProblemas(page)} className="btn-secondary btn-sm">Reintentar</button>
+          <div className="result-mensaje error" style={{ marginBottom: 16 }}>
+            {error} <button onClick={() => cargarProblemas(page)} className="btn-secondary btn-sm" style={{ marginLeft: 8 }}>Reintentar</button>
           </div>
         )}
 
         {!loading && !error && problemas.length === 0 && (
-          <div className="result-mensaje">
-            {page > 1 ? 'No hay más problemas en esta página.' : 'Aún no has creado ningún problema. ¡Empieza creando uno nuevo!'}
+          <div className="empty-display">
+            {page > 1 ? 'No hay más problemas.' : 'Aún no has creado ningún problema. ¡Empieza creando uno nuevo!'}
           </div>
         )}
 
