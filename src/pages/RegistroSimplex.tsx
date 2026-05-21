@@ -161,8 +161,8 @@ export default function RegistroSimplex() {
   useEffect(() => {
     if (!id) return
     obtenerFormulario(id)
-      .then((res:ProblemaSimplexEditable) => {
-        setForm(mapApiToSimplexFormData(res))
+      .then((res) => {
+        setForm(mapApiToSimplexFormData(res as ProblemaSimplexEditable))
         setLoading(false)
       })
       .catch((e: unknown) => {
@@ -180,7 +180,7 @@ export default function RegistroSimplex() {
     setLoading(true)
     setLoadError(null)
     obtenerFormulario(id)
-      .then((res: ProblemaSimplexEditable) => setForm(mapApiToSimplexFormData(res)))
+      .then((res) => setForm(mapApiToSimplexFormData(res as ProblemaSimplexEditable)))
       .catch(() => setLoadError('No se pudieron cargar los datos del problema.'))
       .finally(() => setLoading(false))
   }

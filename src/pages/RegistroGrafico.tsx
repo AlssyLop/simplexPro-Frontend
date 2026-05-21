@@ -144,8 +144,8 @@ export default function RegistroGrafico() {
   useEffect(() => {
     if (!id) return
     obtenerFormulario(id)
-      .then((res: ProblemaGraficoEditable) => {
-        setForm(mapApiToGraficoFormData(res))
+      .then((res) => {
+        setForm(mapApiToGraficoFormData(res as ProblemaGraficoEditable))
         setLoading(false)
       })
       .catch((e: unknown) => {
@@ -163,7 +163,7 @@ export default function RegistroGrafico() {
     setLoading(true)
     setLoadError(null)
     obtenerFormulario(id)
-      .then((res: ProblemaGraficoEditable) => setForm(mapApiToGraficoFormData(res)))
+      .then((res) => setForm(mapApiToGraficoFormData(res as ProblemaGraficoEditable)))
       .catch(() => setLoadError('No se pudieron cargar los datos del problema.'))
       .finally(() => setLoading(false))
   }
