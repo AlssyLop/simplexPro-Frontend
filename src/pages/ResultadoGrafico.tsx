@@ -68,7 +68,7 @@ function ResultadoGrafico() {
 
         {data.restricciones.length > 0 && (
           <div className="result-info">
-            <strong>Restricciones:</strong>
+            <h3 className="result-subtitle">Restricciones</h3>
             <ul className='result-restricciones'>
               {data.restricciones.map((r, i) => (
                 <li key={i}>{r.inecuacion}</li>
@@ -89,7 +89,7 @@ function ResultadoGrafico() {
 
         {data.valoresFO.length > 0 && (
           <div className="result-info">
-            <strong>Evaluación en vértices:</strong>
+            <h3 className="result-subtitle">Evaluación en vértices</h3>
             <ul className="result-valores">
               {data.valoresFO.map((v, i) => {
                 const esOptimo = v.toLowerCase().includes('óptimo') || v.toLowerCase().includes('optimo')

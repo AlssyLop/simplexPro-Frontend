@@ -68,8 +68,17 @@ function ResultadoSimplex() {
 
         {data.valorFO && (
           <div className="result-info" style={{ marginBottom: 16 }}>
-            {data.valorFO}
+            <h3 className="result-subtitle">Valor óptimo</h3>
+            <p style={{ fontFamily: 'var(--mono)', fontSize: 'var(--text-base)', margin: 0 }}>
+              {data.valorFO}
+            </p>
           </div>
+        )}
+
+        {data.iteraciones.length > 1 && (
+          <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)', marginBottom: 16 }}>
+            Se realizaron {data.iteraciones.length} iteraciones para alcanzar la solución.
+          </p>
         )}
 
         {data.iteraciones.map((it, i) => (

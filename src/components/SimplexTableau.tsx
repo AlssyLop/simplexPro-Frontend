@@ -35,7 +35,7 @@ function SimplexTableau({ iteracion, esUltima }: Props) {
   return (
     <div className="iteracion">
       <div className="iteracion-header">
-        <h3>Iteración {iteracion.iteracion}</h3>
+        <h3>Iteración {iteracion.iteracion}{esUltima ? ' (Solución óptima)' : ''}</h3>
         {!esUltima && (
           <div className="detalles">
             {iteracion.entra && <span>Entra: {iteracion.entra}  </span>}

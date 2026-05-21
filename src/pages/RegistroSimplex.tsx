@@ -401,8 +401,9 @@ export default function RegistroSimplex() {
         )}
 
         {/* 1. Información General */}
-        <section className="form-section" style={{ marginBottom: 24 }}>
+        <div className="form-section-card">
           <h2>Información general</h2>
+          <section className="form-section">
           <FormInput
             label="Título *"
             type="text"
@@ -419,12 +420,14 @@ export default function RegistroSimplex() {
               onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setForm(prev => ({ ...prev, descripcion: e.target.value }))}
             />
           </div>
-        </section>
+          </section>
+        </div>
 
         {/* 2. Variables */}
-        <section className="form-section" style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <h2>Variables</h2>
+        <div className="form-section-card">
+          <h2>Variables</h2>
+          <section className="form-section">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 8 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <label htmlFor="qty-vars" style={{ fontSize: 14, fontWeight: 500 }}>Cantidad:</label>
               <input
@@ -454,11 +457,13 @@ export default function RegistroSimplex() {
               />
             ))}
           </div>
-        </section>
+          </section>
+        </div>
 
         {/* 3. Función Objetivo */}
-        <section className="form-section" style={{ marginBottom: 24 }}>
+        <div className="form-section-card">
           <h2>Función objetivo</h2>
+          <section className="form-section">
           <div className="form-row">
             <FormSelect
               label="Objetivo"
@@ -482,12 +487,14 @@ export default function RegistroSimplex() {
               )
             })}
           </div>
-        </section>
+          </section>
+        </div>
 
         {/* 4. Restricciones */}
-        <section className="form-section" style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h2>Restricciones</h2>
+        <div className="form-section-card">
+          <h2>Restricciones</h2>
+          <section className="form-section">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 4 }}>
             <button type="button" className="btn-secondary btn-sm" onClick={addRestriccion}>
               + Agregar restricción
             </button>
@@ -548,7 +555,8 @@ export default function RegistroSimplex() {
               </div>
             ))}
           </div>
-        </section>
+          </section>
+        </div>
 
         <div style={{ textAlign: 'center', marginTop: 16 }}>
           <button type="button" className="btn-primary" onClick={handleOpenSummary}>

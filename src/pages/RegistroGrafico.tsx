@@ -317,8 +317,9 @@ export default function RegistroGrafico() {
         )}
 
         {/* ---- Sección: Información general (Spec §3.2) ---- */}
-        <section className="form-section" style={{ marginBottom: 24 }}>
+        <div className="form-section-card">
           <h2>Información general</h2>
+          <section className="form-section">
           <FormInput
             label="Título *"
             type="text"
@@ -335,11 +336,13 @@ export default function RegistroGrafico() {
               onChange={(e: ChangeEvent<HTMLTextAreaElement>) => updateField('descripcion', e.target.value)}
             />
           </div>
-        </section>
+          </section>
+        </div>
 
         {/* ---- Sección: Variables (Spec §3.1) ---- */}
-        <section className="form-section" style={{ marginBottom: 24 }}>
+        <div className="form-section-card">
           <h2>Variables</h2>
+          <section className="form-section">
           <div className="form-row">
             <FormInput
               label="Nombre de x *"
@@ -358,11 +361,13 @@ export default function RegistroGrafico() {
               error={errors['nombreY']}
             />
           </div>
-        </section>
+          </section>
+        </div>
 
         {/* ---- Sección: Función objetivo (Spec §3.3) ---- */}
-        <section className="form-section" style={{ marginBottom: 24 }}>
+        <div className="form-section-card">
           <h2>Función objetivo</h2>
+          <section className="form-section">
           <div className="form-row">
             <FormSelect
               label="Tipo"
@@ -391,12 +396,14 @@ export default function RegistroGrafico() {
               error={errors['foCoefY']}
             />
           </div>
-        </section>
+          </section>
+        </div>
 
         {/* ---- Sección: Restricciones (Spec §3.4) ---- */}
-        <section className="form-section" style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h2>Restricciones</h2>
+        <div className="form-section-card">
+          <h2>Restricciones</h2>
+          <section className="form-section">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', marginBottom: 4 }}>
             <button type="button" className="btn-secondary btn-sm" onClick={addRestriccion}>
               + Agregar restricción
             </button>
@@ -474,7 +481,8 @@ export default function RegistroGrafico() {
               </div>
             ))}
           </div>
-        </section>
+          </section>
+        </div>
 
         {/* Botón principal (Spec §6.1) */}
         <div style={{ textAlign: 'center', marginTop: 16 }}>
