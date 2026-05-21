@@ -3,21 +3,22 @@ import { useNavigate, useParams } from 'react-router-dom'
 import type { ChangeEvent } from 'react'
 import type {
   SimplexFormData,
-  SimplexVariable,
   SimplexRestriccion,
-  FOTermino,
   FormErrors,
   ApiPayloadSimplex,
   Signo,
   Optimizacion,
+  ProblemaSimplexEditable,
 } from '../types'
 import {
   crearSimplexFormDataVacia,
   generarId,
   mapApiToSimplexFormData,
+  inicializarRestriccion,
+  inicializarVariables,
 } from '../types'
 import {
-  obtenerSolucionSimplex,
+  obtenerFormulario,
   registrarProblemaSimplex,
   actualizarProblemaSimplex,
   ApiRequestError,
@@ -48,48 +49,6 @@ const SIGNO_DISPLAY: Record<string, string> = {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers para inicializar/modificar la estructura
-// ---------------------------------------------------------------------------
-
-function inicializarVariables(count: number): {
-  variables: SimplexVariable[]
-  foTerminos: FOTermino[]
-} {
-  const variables: SimplexVariable[] = []
-  const foTerminos: FOTermino[] = []
-  
-  for (let i = 0; i < count; i++) {
-    const varId = generarId()
-    variables.push({
-      id: varId,
-      nombre: `x${i + 1}`,
-      nombrePersonalizado: '',
-    })
-    foTerminos.push({
-      id: generarId(),
-      variableId: varId,
-      coeficiente: 0,
-    })
-  }
-
-  return { variables, foTerminos }
-}
-
-function inicializarRestriccion(variables: SimplexVariable[]): SimplexRestriccion {
-  return {
-    id: generarId(),
-    coeficientes: variables.map((v) => ({
-      id: generarId(),
-      variableId: v.id,
-      coeficiente: 0,
-    })),
-    signo: '<=',
-    constante: 0,
-    glosa: '',
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Validación del lado del cliente
 // ---------------------------------------------------------------------------
 
@@ -105,7 +64,7 @@ function validarFormulario(data: SimplexFormData): FormErrors {
   }
 
   data.variables.forEach((v) => {
-    if (!v.nombrePersonalizado.trim()) {
+    if (!v.nombre.trim()) {
       errors[`var_${v.id}`] = 'Requerido'
     }
   })
@@ -141,7 +100,7 @@ function validarFormulario(data: SimplexFormData): FormErrors {
 function buildPayload(data: SimplexFormData): ApiPayloadSimplex {
   const variablesMap: Record<string, string> = {}
   data.variables.forEach(v => {
-    variablesMap[v.nombre] = v.nombrePersonalizado.trim()
+    variablesMap[v.variable] = v.nombre.trim()
   })
 
   return {
@@ -178,6 +137,7 @@ export default function RegistroSimplex() {
   const { id } = useParams<{ id: string }>()
   const esEdicion = !!id
 
+  // Estado inicial: 2 variables, 1 restricción
   const [form, setForm] = useState<SimplexFormData>(() => {
     const base = crearSimplexFormDataVacia()
     const { variables, foTerminos } = inicializarVariables(2)
@@ -200,8 +160,8 @@ export default function RegistroSimplex() {
 
   useEffect(() => {
     if (!id) return
-    obtenerSolucionSimplex(id)
-      .then((res) => {
+    obtenerFormulario(id)
+      .then((res:ProblemaSimplexEditable) => {
         setForm(mapApiToSimplexFormData(res))
         setLoading(false)
       })
@@ -219,8 +179,8 @@ export default function RegistroSimplex() {
     if (!id) return
     setLoading(true)
     setLoadError(null)
-    obtenerSolucionSimplex(id)
-      .then((res) => setForm(mapApiToSimplexFormData(res)))
+    obtenerFormulario(id)
+      .then((res: ProblemaSimplexEditable) => setForm(mapApiToSimplexFormData(res)))
       .catch(() => setLoadError('No se pudieron cargar los datos del problema.'))
       .finally(() => setLoading(false))
   }
@@ -247,7 +207,7 @@ export default function RegistroSimplex() {
         // Agregar variables
         for (let i = currentCount; i < qty; i++) {
           const varId = generarId()
-          newVariables.push({ id: varId, nombre: `x${i + 1}`, nombrePersonalizado: '' })
+          newVariables.push({ id: varId, variable: `x${i + 1}`, nombre: '' })
           newFoTerminos.push({ id: generarId(), variableId: varId, coeficiente: 0 })
           newRestricciones.forEach(r => {
             r.coeficientes.push({ id: generarId(), variableId: varId, coeficiente: 0 })
@@ -291,7 +251,7 @@ export default function RegistroSimplex() {
   function updateVarName(id: string, value: string) {
     setForm(prev => ({
       ...prev,
-      variables: prev.variables.map(v => v.id === id ? { ...v, nombrePersonalizado: value } : v)
+      variables: prev.variables.map(v => v.id === id ? { ...v, nombre: value } : v)
     }))
   }
 
@@ -485,10 +445,10 @@ export default function RegistroSimplex() {
             {form.variables.map(v => (
               <FormInput
                 key={v.id}
-                label={`Nombre para ${v.nombre} *`}
+                label={`Nombre para ${v.variable} *`}
                 type="text"
                 placeholder={`Ej: Producto ${v.nombre}`}
-                value={v.nombrePersonalizado}
+                value={v.nombre}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => updateVarName(v.id, e.target.value)}
                 error={errors[`var_${v.id}`]}
               />
@@ -511,7 +471,7 @@ export default function RegistroSimplex() {
               return (
                 <FormInput
                   key={fo.id}
-                  label={`Coef. de ${variable?.nombre} *`}
+                  label={`Coef. de ${variable?.variable} *`}
                   type="number"
                   step="any"
                   placeholder="0"
@@ -623,7 +583,7 @@ export default function RegistroSimplex() {
             <h3>Variables ({form.variables.length})</h3>
             <div className="confirmacion-text">
               {form.variables.map(v => (
-                <div key={v.id}>{v.nombre} → {v.nombrePersonalizado}</div>
+                <div key={v.id}>{v.variable} → {v.nombre}</div>
               ))}
             </div>
           </div>

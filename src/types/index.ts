@@ -11,8 +11,8 @@ export type Signo = '<=' | '>=' | '='
 export interface SimplexVariable {
   id: string
   /** Clave generada: x1, x2, ..., xn */
+  variable: string
   nombre: string
-  nombrePersonalizado: string
 }
 
 export interface FOTermino {
@@ -43,17 +43,6 @@ export interface SimplexFormData {
   foTerminos: FOTermino[]
   restricciones: SimplexRestriccion[]
 }
-
-export interface GraficoFormData {
-  titulo: string
-  descripcion: string
-  nombreX: string
-  nombreY: string
-  foTipo: Optimizacion
-  foCoefX: number
-  foCoefY: number
-  restricciones: GraficoRestriccion[]
-  }
 
 export interface GraficoRestriccion {
   id: string
@@ -253,7 +242,11 @@ export function crearRestriccionGrafica(): GraficoRestriccion {
   }
 }
 
-export function crearRestriccionSimplex(variables: SimplexVariable[]): SimplexRestriccion {
+// ---------------------------------------------------------------------------
+// Helpers para inicializar/modificar la estructura
+// ---------------------------------------------------------------------------
+
+export function inicializarRestriccion(variables: SimplexVariable[]): SimplexRestriccion {
   return {
     id: generarId(),
     coeficientes: variables.map((v) => ({
@@ -267,116 +260,91 @@ export function crearRestriccionSimplex(variables: SimplexVariable[]): SimplexRe
   }
 }
 
+export function inicializarVariables(count: number): { variables: SimplexVariable[], foTerminos: FOTermino[] } {
+  const variables: SimplexVariable[] = []
+  const foTerminos: FOTermino[] = []
+  
+  for (let i = 0; i < count; i++) {
+    const varId = generarId()
+    variables.push({
+      id: varId,
+      variable: `x${i + 1}`,
+      nombre: '',
+    })
+    foTerminos.push({
+      id: generarId(),
+      variableId: varId,
+      coeficiente: 0,
+    })
+  }
+
+  return { variables, foTerminos }
+}
+
 // ---------------------------------------------------------------------------
 // Mapeo de API → FormData (para edición)
 // ---------------------------------------------------------------------------
 
-const FO_PARSE = /^(MAX|MIN)\s+Z\s*=\s*(-?\d+(?:\.\d+)?)\s*x\s*([+-])\s*(\d+(?:\.\d+)?)\s*y$/
-const REST_PARSE = /^([+-]?\d+(?:\.\d+)?)\s*x\s*([+-])\s*(\d+(?:\.\d+)?)\s*y\s*(<=|>=|=)\s*(\d+(?:\.\d+)?)$/
-
-function parseFO(fo: string, tipoOptimizacion: 'MAX' | 'MIN'): { foTipo: Optimizacion; foCoefX: number; foCoefY: number } {
-  const m = fo.match(FO_PARSE)
-  if (m) {
-    return {
-      foTipo: m[1] === 'MIN' ? 'min' : 'max',
-      foCoefX: Number(m[2]),
-      foCoefY: m[3] === '-' ? -Number(m[4]) : Number(m[4]),
-    }
-  }
-  return { foTipo: tipoOptimizacion === 'MIN' ? 'min' : 'max', foCoefX: 0, foCoefY: 0 }
-}
-
-function parseRestriccion(inecuacion: string, glosa: string | null): GraficoRestriccion {
-  const m = inecuacion.match(REST_PARSE)
-  if (m) {
-    const coefY = m[2] === '-' ? -Number(m[3]) : Number(m[3])
-    return {
-      id: generarId(),
-      coefX: Number(m[1]),
-      coefY,
-      signo: m[4] as Signo,
-      constante: Number(m[5]),
-      glosa: glosa ?? '',
-    }
-  }
-  return crearRestriccionGrafica()
-}
-
-export function mapApiToGraficoFormData(res: MostrarResultadoGrafico): GraficoFormData {
-  const { foTipo, foCoefX, foCoefY } = parseFO(res.funcion_objetivo, res.tipoOptimizacion)
+export function mapApiToGraficoFormData(res: ProblemaGraficoEditable): GraficoFormData {
+  const titulo = res.titulo
+  const descripcion = res.descripcion ?? ''
+  const nombreX = res.variables.x
+  const nombreY = res.variables.y
+  const foTipo = res.funcion_objetivo.tipo
+  const foCoefX = res.funcion_objetivo.x
+  const foCoefY = res.funcion_objetivo.y
+  const restricciones = res.restricciones.map((r) => ({
+    id: generarId(),
+    coefX: r.x,
+    coefY: r.y,
+    signo: r.signo,
+    constante: r.constante,
+    glosa: r.glosa ?? '',
+  }))
   return {
-    titulo: res.titulo,
-    descripcion: res.descripcion ?? '',
-    nombreX: res.variables.x,
-    nombreY: res.variables.y,
+    titulo,
+    descripcion,
+    nombreX,
+    nombreY,
     foTipo,
     foCoefX,
     foCoefY,
-    restricciones: res.restricciones.map((r) => parseRestriccion(r.inecuacion, r.glosa)),
+    restricciones,
   }
 }
 
-const REST_SIMPLEX = /^(.*?)\s*(<=|>=|=)\s*(\d+(?:\.\d+)?)$/
-
-function extractCoef(expr: string, key: string): number {
-  const re = new RegExp(`([+-]?\\d+(?:\\.\\d+)?)\\s*${key}`)
-  const m = expr.match(re)
-  return m ? Number(m[1]) : 0
-}
-
-function parseRestriccionSimplex(
-  inecuacion: string,
-  _glosa: string | null,
-  keys: string[],
-): { terminos: Record<string, number>; signo: Signo; constante: number } {
-  const m = inecuacion.match(REST_SIMPLEX)
-  if (m) {
-    const expr = m[1].trim()
-    const terminos: Record<string, number> = {}
-    for (const key of keys) {
-      terminos[key] = extractCoef(expr, key)
-    }
-    return { terminos, signo: m[2] as Signo, constante: Number(m[3]) }
-  }
-  return { terminos: {}, signo: '<=' as Signo, constante: 0 }
-}
-
-export function mapApiToSimplexFormData(res: MostrarResultadoSimplex): SimplexFormData {
-  const keys = Object.keys(res.variables).sort()
-  const variables: SimplexVariable[] = keys.map((k) => ({
+export function mapApiToSimplexFormData(res: ProblemaSimplexEditable): SimplexFormData {
+  const titulo = res.titulo
+  const descripcion = res.descripcion ?? ''
+  const variables = Object.entries(res.variables).map(([key, value]) => ({
     id: generarId(),
-    nombre: k,
-    nombrePersonalizado: res.variables[k],
+    variable: key,
+    nombre: value,
   }))
-
-  const varPorNombre = new Map<string, string>()
-  keys.forEach((k, i) => varPorNombre.set(k, variables[i].id))
-
-  const foTipo: Optimizacion = res.tipoOptimizacion === 'MIN' ? 'min' : 'max'
-
+  const nombreToId = new Map(variables.map(v => [v.nombre, v.id]))
+  const foTipo = res.funcion_objetivo.tipo
+  const foTerminos = Object.entries(res.funcion_objetivo.terminos).map(([key, value]) => ({
+    id: generarId(),
+    variableId: nombreToId.get(key) ?? key,
+    coeficiente: value,
+  }))
+  const restricciones = res.restricciones.map((r) => ({
+    id: generarId(),
+    coeficientes: Object.entries(r.terminos).map(([key, value]) => ({
+      id: generarId(),
+      variableId: nombreToId.get(key) ?? key,
+      coeficiente: value,
+    })),
+    signo: r.signo,
+    constante: r.constante,
+    glosa: r.glosa ?? '',
+  }))
   return {
-    titulo: res.titulo,
-    descripcion: res.descripcion ?? '',
+    titulo,
+    descripcion,
     variables,
     foTipo,
-    foTerminos: keys.map((k) => ({
-      id: generarId(),
-      variableId: varPorNombre.get(k)!,
-      coeficiente: extractCoef(res.funcion_objetivo, k),
-    })),
-    restricciones: res.restricciones.map((r) => {
-      const parsed = parseRestriccionSimplex(r.inecuacion, r.glosa, keys)
-      return {
-        id: generarId(),
-        coeficientes: keys.map((k) => ({
-          id: generarId(),
-          variableId: varPorNombre.get(k)!,
-          coeficiente: parsed.terminos[k] ?? 0,
-        })),
-        signo: parsed.signo,
-        constante: parsed.constante,
-        glosa: r.glosa ?? '',
-      }
-    }),
+    foTerminos,
+    restricciones
   }
 }
