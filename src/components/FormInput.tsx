@@ -4,12 +4,14 @@ import type { InputHTMLAttributes } from 'react'
 export interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
+  showInvalid?: boolean
 }
 
 export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
-  ({ label, error, className = '', id: providedId, ...props }, ref) => {
+  ({ label, error, showInvalid, className = '', id: providedId, ...props }, ref) => {
     const generatedId = useId()
     const id = providedId ?? generatedId
+    const invalid = !!(error || showInvalid)
 
     return (
       <div className={`form-field ${className}`}>
@@ -17,8 +19,8 @@ export const FormInput = forwardRef<HTMLInputElement, FormInputProps>(
         <input
           id={id}
           ref={ref}
-          className={error ? 'is-invalid' : ''}
-          aria-invalid={!!error}
+          className={invalid ? 'is-invalid' : ''}
+          aria-invalid={invalid}
           aria-describedby={error ? `${id}-error` : undefined}
           {...props}
         />
