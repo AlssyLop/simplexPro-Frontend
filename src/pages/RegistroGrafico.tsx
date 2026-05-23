@@ -138,6 +138,7 @@ export default function RegistroGrafico() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loading, setLoading] = useState(esEdicion)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [showFieldErrors, setShowFieldErrors] = useState(false)
 
   // --- Carga de datos en modo edición ---
 
@@ -198,9 +199,17 @@ export default function RegistroGrafico() {
   ) {
     const parsed = raw === '' ? NaN : Number(raw)
     updateRestriccion(index, field, parsed)
+    if (index === form.restricciones.length - 1) {
+      setShowFieldErrors(false)
+    }
   }
 
   function addRestriccion() {
+    if (!ultimaRestriccionCompleta()) {
+      setShowFieldErrors(true)
+      return
+    }
+    setShowFieldErrors(false)
     setForm((prev) => ({
       ...prev,
       restricciones: [...prev.restricciones, crearRestriccionGrafica()],
@@ -212,6 +221,12 @@ export default function RegistroGrafico() {
       ...prev,
       restricciones: prev.restricciones.filter((_r, i) => i !== index),
     }))
+  }
+
+  function ultimaRestriccionCompleta(): boolean {
+    if (form.restricciones.length === 0) return true
+    const r = form.restricciones[form.restricciones.length - 1]
+    return !isNaN(r.coefX) && !isNaN(r.coefY) && !isNaN(r.constante)
   }
 
   // --- Abrir resumen (Spec §6.1): solo si pasa validación ---
@@ -437,6 +452,7 @@ export default function RegistroGrafico() {
                       updateRestriccionNumero(i, 'coefX', e.target.value)
                     }
                     error={errors[`restriccion_${i}_coefX`]}
+                    showInvalid={showFieldErrors && i === form.restricciones.length - 1 && isNaN(r.coefX)}
                   />
                   <FormInput
                     label="Coef. y"
@@ -448,6 +464,7 @@ export default function RegistroGrafico() {
                       updateRestriccionNumero(i, 'coefY', e.target.value)
                     }
                     error={errors[`restriccion_${i}_coefY`]}
+                    showInvalid={showFieldErrors && i === form.restricciones.length - 1 && isNaN(r.coefY)}
                   />
                   <FormSelect
                     label="Signo"
@@ -467,6 +484,7 @@ export default function RegistroGrafico() {
                       updateRestriccionNumero(i, 'constante', e.target.value)
                     }
                     error={errors[`restriccion_${i}_constante`]}
+                    showInvalid={showFieldErrors && i === form.restricciones.length - 1 && isNaN(r.constante)}
                   />
                 </div>
                 <FormInput
