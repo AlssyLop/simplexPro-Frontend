@@ -155,6 +155,7 @@ export default function RegistroSimplex() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loading, setLoading] = useState(esEdicion)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [showFieldErrors, setShowFieldErrors] = useState(false)
 
   // --- Carga de datos en modo edición ---
 
@@ -233,6 +234,11 @@ export default function RegistroSimplex() {
   }
 
   function addRestriccion() {
+    if (!ultimaRestriccionCompleta()) {
+      setShowFieldErrors(true)
+      return
+    }
+    setShowFieldErrors(false)
     setForm(prev => ({
       ...prev,
       restricciones: [...prev.restricciones, inicializarRestriccion(prev.variables)]
@@ -272,6 +278,7 @@ export default function RegistroSimplex() {
 
   function updateRestriccionCoef(rId: string, varId: string, raw: string) {
     const val = raw === '' ? NaN : Number(raw)
+    setShowFieldErrors(false)
     setForm(prev => ({
       ...prev,
       restricciones: prev.restricciones.map(r => {
@@ -286,7 +293,17 @@ export default function RegistroSimplex() {
 
   function updateRestriccionConstante(rId: string, raw: string) {
     const val = raw === '' ? NaN : Number(raw)
+    setShowFieldErrors(false)
     updateRestriccion(rId, 'constante', val)
+  }
+
+  function ultimaRestriccionCompleta(): boolean {
+    if (form.restricciones.length === 0) return true
+    const r = form.restricciones[form.restricciones.length - 1]
+    return (
+      r.coeficientes.every(c => !isNaN(c.coeficiente)) &&
+      !isNaN(r.constante)
+    )
   }
 
   // --- Resumen y Submit ---
@@ -526,6 +543,7 @@ export default function RegistroSimplex() {
                         value={isNaN(c.coeficiente) ? '' : String(c.coeficiente)}
                         onChange={(e: ChangeEvent<HTMLInputElement>) => updateRestriccionCoef(r.id, c.variableId, e.target.value)}
                         error={errors[`restriccion_${r.id}_coef_${c.variableId}`]}
+                        showInvalid={showFieldErrors && index === form.restricciones.length - 1 && isNaN(c.coeficiente)}
                       />
                     )
                   })}
@@ -543,6 +561,7 @@ export default function RegistroSimplex() {
                     value={isNaN(r.constante) ? '' : String(r.constante)}
                     onChange={(e: ChangeEvent<HTMLInputElement>) => updateRestriccionConstante(r.id, e.target.value)}
                     error={errors[`restriccion_${r.id}_constante`]}
+                    showInvalid={showFieldErrors && index === form.restricciones.length - 1 && isNaN(r.constante)}
                   />
                 </div>
                 <FormInput
