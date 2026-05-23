@@ -1,9 +1,9 @@
 import type {
   ApiPayloadGrafico,
   ApiPayloadSimplex,
+  ListadoProblemasResponse,
   MostrarResultadoGrafico,
   MostrarResultadoSimplex,
-  ResumenProblema,
   ProblemaGraficoEditable,
   ProblemaSimplexEditable,
 } from '../types'
@@ -43,10 +43,9 @@ async function handleResponse<T>(res: Response): Promise<T> {
 // Endpoints
 // ---------------------------------------------------------------------------
 
-export async function listarProblemas(page: number): Promise<ResumenProblema[]> {
+export async function listarProblemas(page: number): Promise<ListadoProblemasResponse> {
   const res = await fetch(`${API}/problemas?page=${page}`)
-  const data = await handleResponse<ResumenProblema[]>(res)
-  return data
+  return handleResponse<ListadoProblemasResponse>(res)
 }
 
 export async function registrarProblemaGrafico(
