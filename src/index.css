@@ -965,19 +965,94 @@ button:disabled {
   }
 }
 
-.pagination {
+/* Pagination bar */
+.pagination-bar {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-4);
   margin-top: var(--space-6);
   padding: var(--space-4) 0;
+  flex-wrap: wrap;
 }
 
-.pagination-info {
+.pagination-per-page {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: var(--text-sm);
-  font-weight: 600;
   color: var(--color-text-secondary);
+}
+
+.pagination-per-page label {
+  white-space: nowrap;
+}
+
+.pagination-per-page select {
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+/* ReactPaginate */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pagination li {
+  display: flex;
+}
+
+.pagination li a,
+.pagination li span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 6px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.pagination li a:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-hover);
+}
+
+.pagination li.active a {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.pagination li.disabled a,
+.pagination li.disabled span {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.pagination li.break-me span {
+  border: none;
+  cursor: default;
 }
 
 /* Confirm Modal Box */
