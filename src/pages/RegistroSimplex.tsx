@@ -111,7 +111,7 @@ function buildPayload(data: SimplexFormData): ApiPayloadSimplex {
       tipo: data.foTipo,
       terminos: data.foTerminos.reduce((acc, fo) => {
         const variable = data.variables.find(v => v.id === fo.variableId)!
-        acc[variable.nombre] = fo.coeficiente
+        acc[variable.variable] = fo.coeficiente
         return acc
       }, {} as Record<string, number>)
     },
@@ -121,7 +121,7 @@ function buildPayload(data: SimplexFormData): ApiPayloadSimplex {
       glosa: r.glosa.trim() || undefined,
       terminos: r.coeficientes.reduce((acc, c) => {
         const variable = data.variables.find(v => v.id === c.variableId)!
-        acc[variable.nombre] = c.coeficiente
+        acc[variable.variable] = c.coeficiente
         return acc
       }, {} as Record<string, number>)
     }))
@@ -536,7 +536,7 @@ export default function RegistroSimplex() {
                     return (
                       <FormInput
                         key={c.id}
-                        label={`Coef. ${variable?.nombre}`}
+                        label={`Coef. ${variable?.variable}`}
                         type="number"
                         step="any"
                         placeholder="0"

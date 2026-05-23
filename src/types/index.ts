@@ -330,18 +330,18 @@ export function mapApiToSimplexFormData(res: ProblemaSimplexEditable): SimplexFo
     variable: key,
     nombre: value,
   }))
-  const nombreToId = new Map(variables.map(v => [v.nombre, v.id]))
+  const keyToId = new Map(variables.map(v => [v.variable, v.id]))
   const foTipo = res.funcion_objetivo.tipo
   const foTerminos = Object.entries(res.funcion_objetivo.terminos).map(([key, value]) => ({
     id: generarId(),
-    variableId: nombreToId.get(key) ?? key,
+    variableId: keyToId.get(key) ?? key,
     coeficiente: value,
   }))
   const restricciones = res.restricciones.map((r) => ({
     id: generarId(),
     coeficientes: Object.entries(r.terminos).map(([key, value]) => ({
       id: generarId(),
-      variableId: nombreToId.get(key) ?? key,
+      variableId: keyToId.get(key) ?? key,
       coeficiente: value,
     })),
     signo: r.signo,
