@@ -243,10 +243,10 @@ export function crearGraficoFormDataVacia(): GraficoFormData {
 export function crearRestriccionGrafica(): GraficoRestriccion {
   return {
     id: generarId(),
-    coefX: 0,
-    coefY: 0,
+    coefX: NaN,
+    coefY: NaN,
     signo: '<=',
-    constante: 0,
+    constante: NaN,
     glosa: '',
   }
 }
@@ -261,10 +261,10 @@ export function inicializarRestriccion(variables: SimplexVariable[]): SimplexRes
     coeficientes: variables.map((v) => ({
       id: generarId(),
       variableId: v.id,
-      coeficiente: 0,
+      coeficiente: NaN,
     })),
     signo: '<=',
-    constante: 0,
+    constante: NaN,
     glosa: '',
   }
 }
