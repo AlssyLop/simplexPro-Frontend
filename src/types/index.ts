@@ -150,6 +150,15 @@ export interface ApiError {
 // Respuestas de la API (GET)
 // ---------------------------------------------------------------------------
 
+export interface ListadoProblemasResponse {
+  problemas: ResumenProblema[]
+  pagination: {
+    totalItems: number
+    pageSize: number
+    totalPages: number
+  }
+}
+
 export interface ResumenProblema {
   id: string
   titulo: string
