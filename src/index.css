@@ -646,6 +646,11 @@ button:disabled {
   font-size: var(--text-xs);
 }
 
+.btn-sm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Cards for variables, restrictions, FO terms */
 .card {
   background: var(--color-surface);
