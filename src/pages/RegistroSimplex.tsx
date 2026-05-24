@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { ChangeEvent } from 'react'
 import type {
@@ -370,6 +370,15 @@ export default function RegistroSimplex() {
     return r.glosa.trim() ? `${eq} (${r.glosa.trim()})` : eq
   }
 
+  // --- Auto-scroll a errores del servidor ---
+
+  const errorRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (serverError && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [serverError])
+
   // --- Render ---
 
   if (loading) {
@@ -412,7 +421,7 @@ export default function RegistroSimplex() {
 
       <div className="page-content">
         {serverError && (
-          <div className="result-mensaje error" style={{ marginBottom: 20 }}>
+          <div ref={errorRef} className="result-mensaje error" style={{ marginBottom: 20 }}>
             {serverError}
           </div>
         )}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { ChangeEvent } from 'react'
 import type {
@@ -283,6 +283,15 @@ export default function RegistroGrafico() {
     return r.glosa.trim() ? `${base} (${r.glosa.trim()})` : base
   }
 
+  // --- Auto-scroll a errores del servidor ---
+
+  const errorRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (serverError && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [serverError])
+
   // --- Render ---
 
   if (loading) {
@@ -326,7 +335,7 @@ export default function RegistroGrafico() {
       <div className="page-content">
         {/* Error general del servidor (Spec §7) */}
         {serverError && (
-          <div className="result-mensaje error" style={{ marginBottom: 20 }}>
+          <div ref={errorRef} className="result-mensaje error" style={{ marginBottom: 20 }}>
             {serverError}
           </div>
         )}
