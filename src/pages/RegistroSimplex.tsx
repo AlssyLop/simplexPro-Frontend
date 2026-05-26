@@ -16,6 +16,7 @@ import {
   mapApiToSimplexFormData,
   inicializarRestriccion,
   inicializarVariables,
+  parseNumericString,
 } from '../types'
 import {
   obtenerFormulario,
@@ -24,6 +25,7 @@ import {
   ApiRequestError,
 } from '../api/client'
 import { FormInput } from '../components/FormInput'
+import { NumericTextInput } from '../components/NumericTextInput'
 import { FormSelect } from '../components/FormSelect'
 import { SummaryModal } from '../components/SummaryModal'
 
@@ -70,7 +72,7 @@ function validarFormulario(data: SimplexFormData): FormErrors {
   })
 
   data.foTerminos.forEach((fo) => {
-    if (isNaN(fo.coeficiente)) {
+    if (fo.coeficiente === '' || isNaN(parseNumericString(fo.coeficiente))) {
       errors[`fo_${fo.variableId}`] = 'Debe ser un número'
     }
   })
@@ -80,11 +82,11 @@ function validarFormulario(data: SimplexFormData): FormErrors {
   }
 
   data.restricciones.forEach((r) => {
-    if (isNaN(r.constante)) {
+    if (r.constante === '' || isNaN(parseNumericString(r.constante))) {
       errors[`restriccion_${r.id}_constante`] = 'Requerido'
     }
     r.coeficientes.forEach((c) => {
-      if (isNaN(c.coeficiente)) {
+      if (c.coeficiente === '' || isNaN(parseNumericString(c.coeficiente))) {
         errors[`restriccion_${r.id}_coef_${c.variableId}`] = 'Requerido'
       }
     })
@@ -111,17 +113,17 @@ function buildPayload(data: SimplexFormData): ApiPayloadSimplex {
       tipo: data.foTipo,
       terminos: data.foTerminos.reduce((acc, fo) => {
         const variable = data.variables.find(v => v.id === fo.variableId)!
-        acc[variable.variable] = fo.coeficiente
+        acc[variable.variable] = parseNumericString(fo.coeficiente)
         return acc
       }, {} as Record<string, number>)
     },
     restricciones: data.restricciones.map(r => ({
       signo: r.signo,
-      constante: r.constante,
+      constante: parseNumericString(r.constante),
       glosa: r.glosa.trim() || undefined,
       terminos: r.coeficientes.reduce((acc, c) => {
         const variable = data.variables.find(v => v.id === c.variableId)!
-        acc[variable.variable] = c.coeficiente
+        acc[variable.variable] = parseNumericString(c.coeficiente)
         return acc
       }, {} as Record<string, number>)
     }))
@@ -209,9 +211,9 @@ export default function RegistroSimplex() {
         for (let i = currentCount; i < qty; i++) {
           const varId = generarId()
           newVariables.push({ id: varId, variable: `x${i + 1}`, nombre: '' })
-          newFoTerminos.push({ id: generarId(), variableId: varId, coeficiente: 0 })
+          newFoTerminos.push({ id: generarId(), variableId: varId, coeficiente: '' })
           newRestricciones.forEach(r => {
-            r.coeficientes.push({ id: generarId(), variableId: varId, coeficiente: 0 })
+            r.coeficientes.push({ id: generarId(), variableId: varId, coeficiente: '' })
           })
         }
       } else {
@@ -262,10 +264,9 @@ export default function RegistroSimplex() {
   }
 
   function updateFOCoef(varId: string, raw: string) {
-    const val = raw === '' ? NaN : Number(raw)
     setForm(prev => ({
       ...prev,
-      foTerminos: prev.foTerminos.map(fo => fo.variableId === varId ? { ...fo, coeficiente: val } : fo)
+      foTerminos: prev.foTerminos.map(fo => fo.variableId === varId ? { ...fo, coeficiente: raw } : fo)
     }))
   }
 
@@ -277,7 +278,6 @@ export default function RegistroSimplex() {
   }
 
   function updateRestriccionCoef(rId: string, varId: string, raw: string) {
-    const val = raw === '' ? NaN : Number(raw)
     setShowFieldErrors(false)
     setForm(prev => ({
       ...prev,
@@ -285,24 +285,23 @@ export default function RegistroSimplex() {
         if (r.id !== rId) return r
         return {
           ...r,
-          coeficientes: r.coeficientes.map(c => c.variableId === varId ? { ...c, coeficiente: val } : c)
+          coeficientes: r.coeficientes.map(c => c.variableId === varId ? { ...c, coeficiente: raw } : c)
         }
       })
     }))
   }
 
   function updateRestriccionConstante(rId: string, raw: string) {
-    const val = raw === '' ? NaN : Number(raw)
     setShowFieldErrors(false)
-    updateRestriccion(rId, 'constante', val)
+    updateRestriccion(rId, 'constante', raw)
   }
 
   function ultimaRestriccionCompleta(): boolean {
     if (form.restricciones.length === 0) return true
     const r = form.restricciones[form.restricciones.length - 1]
     return (
-      r.coeficientes.every(c => !isNaN(c.coeficiente)) &&
-      !isNaN(r.constante)
+      r.coeficientes.every(c => c.coeficiente !== '') &&
+      r.constante !== ''
     )
   }
 
@@ -352,8 +351,8 @@ export default function RegistroSimplex() {
     const terminos = form.foTerminos.map((fo, i) => {
       const v = form.variables.find(vx => vx.id === fo.variableId)
       const name = v?.nombre || `x${i+1}`
-      const coef = fo.coeficiente
-      return i === 0 ? `${coef}${name}` : `${coef >= 0 ? '+' : '-'} ${Math.abs(coef)}${name}`
+      const coef = fo.coeficiente === '' ? '?' : fo.coeficiente
+      return i === 0 ? `${coef}${name}` : `+ ${coef}${name}`
     }).join(' ')
     return `${tipo} Z = ${terminos}`
   }
@@ -362,11 +361,12 @@ export default function RegistroSimplex() {
     const base = r.coeficientes.map((c, i) => {
       const v = form.variables.find(vx => vx.id === c.variableId)
       const name = v?.nombre || `x${i+1}`
-      const coef = c.coeficiente
-      return i === 0 ? `${coef}${name}` : `${coef >= 0 ? '+' : '-'} ${Math.abs(coef)}${name}`
+      const coef = c.coeficiente === '' ? '?' : c.coeficiente
+      return i === 0 ? `${coef}${name}` : `+ ${coef}${name}`
     }).join(' ')
     const signo = SIGNO_DISPLAY[r.signo] ?? r.signo
-    const eq = `${base} ${signo} ${r.constante}`
+    const constante = r.constante === '' ? '?' : r.constante
+    const eq = `${base} ${signo} ${constante}`
     return r.glosa.trim() ? `${eq} (${r.glosa.trim()})` : eq
   }
 
@@ -500,14 +500,12 @@ export default function RegistroSimplex() {
             {form.foTerminos.map(fo => {
               const variable = form.variables.find(v => v.id === fo.variableId)
               return (
-                <FormInput
+                <NumericTextInput
                   key={fo.id}
                   label={`Coef. de ${variable?.variable} *`}
-                  type="number"
-                  step="any"
                   placeholder="0"
-                  value={isNaN(fo.coeficiente) ? '' : String(fo.coeficiente)}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => updateFOCoef(fo.variableId, e.target.value)}
+                  value={fo.coeficiente}
+                  onChange={(v) => updateFOCoef(fo.variableId, v)}
                   error={errors[`fo_${fo.variableId}`]}
                 />
               )
@@ -543,16 +541,14 @@ export default function RegistroSimplex() {
                   {r.coeficientes.map(c => {
                     const variable = form.variables.find(v => v.id === c.variableId)
                     return (
-                      <FormInput
+                      <NumericTextInput
                         key={c.id}
                         label={`Coef. ${variable?.variable}`}
-                        type="number"
-                        step="any"
                         placeholder="0"
-                        value={isNaN(c.coeficiente) ? '' : String(c.coeficiente)}
-                        onChange={(e: ChangeEvent<HTMLInputElement>) => updateRestriccionCoef(r.id, c.variableId, e.target.value)}
+                        value={c.coeficiente}
+                        onChange={(v) => updateRestriccionCoef(r.id, c.variableId, v)}
                         error={errors[`restriccion_${r.id}_coef_${c.variableId}`]}
-                        showInvalid={showFieldErrors && index === form.restricciones.length - 1 && isNaN(c.coeficiente)}
+                        showInvalid={showFieldErrors && index === form.restricciones.length - 1 && c.coeficiente === ''}
                       />
                     )
                   })}
@@ -562,15 +558,13 @@ export default function RegistroSimplex() {
                     value={r.signo}
                     onChange={(e: ChangeEvent<HTMLSelectElement>) => updateRestriccion(r.id, 'signo', e.target.value as Signo)}
                   />
-                  <FormInput
+                  <NumericTextInput
                     label="Constante"
-                    type="number"
-                    step="any"
                     placeholder="0"
-                    value={isNaN(r.constante) ? '' : String(r.constante)}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => updateRestriccionConstante(r.id, e.target.value)}
+                    value={r.constante}
+                    onChange={(v) => updateRestriccionConstante(r.id, v)}
                     error={errors[`restriccion_${r.id}_constante`]}
-                    showInvalid={showFieldErrors && index === form.restricciones.length - 1 && isNaN(r.constante)}
+                    showInvalid={showFieldErrors && index === form.restricciones.length - 1 && r.constante === ''}
                   />
                 </div>
                 <FormInput

@@ -14,6 +14,7 @@ import {
   crearGraficoFormDataVacia,
   crearRestriccionGrafica,
   mapApiToGraficoFormData,
+  parseNumericString,
 } from '../types'
 import {
   obtenerFormulario,
@@ -22,6 +23,7 @@ import {
   ApiRequestError,
 } from '../api/client'
 import { FormInput } from '../components/FormInput'
+import { NumericTextInput } from '../components/NumericTextInput'
 import { FormSelect } from '../components/FormSelect'
 import { SummaryModal } from '../components/SummaryModal'
 
@@ -67,11 +69,11 @@ function validarFormulario(data: GraficoFormData): FormErrors {
   }
 
   // Coeficientes de FO deben ser numéricos válidos
-  if (isNaN(data.foCoefX)) {
-    errors['foCoefX'] = 'Debe ser un número válido'
+  if (data.foCoefX === '' || isNaN(parseNumericString(data.foCoefX))) {
+    errors['foCoefX'] = 'El coeficiente es requerido'
   }
-  if (isNaN(data.foCoefY)) {
-    errors['foCoefY'] = 'Debe ser un número válido'
+  if (data.foCoefY === '' || isNaN(parseNumericString(data.foCoefY))) {
+    errors['foCoefY'] = 'El coeficiente es requerido'
   }
 
   // Restricciones: al menos una
@@ -81,13 +83,13 @@ function validarFormulario(data: GraficoFormData): FormErrors {
 
   // Validar cada restricción
   data.restricciones.forEach((r, i) => {
-    if (isNaN(r.coefX)) {
+    if (r.coefX === '' || isNaN(parseNumericString(r.coefX))) {
       errors[`restriccion_${i}_coefX`] = 'Debe ser un número válido'
     }
-    if (isNaN(r.coefY)) {
+    if (r.coefY === '' || isNaN(parseNumericString(r.coefY))) {
       errors[`restriccion_${i}_coefY`] = 'Debe ser un número válido'
     }
-    if (isNaN(r.constante)) {
+    if (r.constante === '' || isNaN(parseNumericString(r.constante))) {
       errors[`restriccion_${i}_constante`] = 'Debe ser un número válido'
     }
   })
@@ -108,15 +110,15 @@ function buildPayload(data: GraficoFormData): ApiPayloadGrafico {
       y: data.nombreY.trim(),
     },
     funcion_objetivo: {
-      x: data.foCoefX,
-      y: data.foCoefY,
+      x: parseNumericString(data.foCoefX),
+      y: parseNumericString(data.foCoefY),
       tipo: data.foTipo,
     },
     restricciones: data.restricciones.map((r) => ({
-      x: r.coefX,
-      y: r.coefY,
+      x: parseNumericString(r.coefX),
+      y: parseNumericString(r.coefY),
       signo: r.signo,
-      constante: r.constante,
+      constante: parseNumericString(r.constante),
       glosa: r.glosa.trim() || undefined,
     })),
   }
@@ -176,8 +178,7 @@ export default function RegistroGrafico() {
   }
 
   function updateNumericField(field: 'foCoefX' | 'foCoefY', raw: string) {
-    const parsed = raw === '' ? NaN : Number(raw)
-    setForm((prev) => ({ ...prev, [field]: parsed }))
+    setForm((prev) => ({ ...prev, [field]: raw }))
   }
 
   function updateRestriccion<K extends keyof GraficoRestriccion>(
@@ -197,8 +198,7 @@ export default function RegistroGrafico() {
     field: 'coefX' | 'coefY' | 'constante',
     raw: string,
   ) {
-    const parsed = raw === '' ? NaN : Number(raw)
-    updateRestriccion(index, field, parsed)
+    updateRestriccion(index, field, raw)
     if (index === form.restricciones.length - 1) {
       setShowFieldErrors(false)
     }
@@ -226,7 +226,7 @@ export default function RegistroGrafico() {
   function ultimaRestriccionCompleta(): boolean {
     if (form.restricciones.length === 0) return true
     const r = form.restricciones[form.restricciones.length - 1]
-    return !isNaN(r.coefX) && !isNaN(r.coefY) && !isNaN(r.constante)
+    return r.coefX !== '' && r.coefY !== '' && r.constante !== ''
   }
 
   // --- Abrir resumen (Spec §6.1): solo si pasa validación ---
@@ -274,12 +274,12 @@ export default function RegistroGrafico() {
 
   function formatFO(): string {
     const tipo = form.foTipo.toUpperCase()
-    return `${tipo} Z = ${form.foCoefX}x + ${form.foCoefY}y`
+    return `${tipo} Z = ${form.foCoefX || '?'}x + ${form.foCoefY || '?'}y`
   }
 
   function formatRestriccion(r: GraficoRestriccion): string {
     const signo = SIGNO_DISPLAY[r.signo] ?? r.signo
-    const base = `${r.coefX}x + ${r.coefY}y ${signo} ${r.constante}`
+    const base = `${r.coefX || '?'}x + ${r.coefY || '?'}y ${signo} ${r.constante || '?'}`
     return r.glosa.trim() ? `${base} (${r.glosa.trim()})` : base
   }
 
@@ -401,22 +401,18 @@ export default function RegistroGrafico() {
                 setForm((prev) => ({ ...prev, foTipo: e.target.value as Optimizacion }))
               }
             />
-            <FormInput
+            <NumericTextInput
               label="Coeficiente de x *"
-              type="number"
-              step="any"
               placeholder="0"
-              value={isNaN(form.foCoefX) ? '' : String(form.foCoefX)}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => updateNumericField('foCoefX', e.target.value)}
+              value={form.foCoefX}
+              onChange={(v) => updateNumericField('foCoefX', v)}
               error={errors['foCoefX']}
             />
-            <FormInput
+            <NumericTextInput
               label="Coeficiente de y *"
-              type="number"
-              step="any"
               placeholder="0"
-              value={isNaN(form.foCoefY) ? '' : String(form.foCoefY)}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => updateNumericField('foCoefY', e.target.value)}
+              value={form.foCoefY}
+              onChange={(v) => updateNumericField('foCoefY', v)}
               error={errors['foCoefY']}
             />
           </div>
@@ -451,29 +447,21 @@ export default function RegistroGrafico() {
                   </button>
                 </div>
                 <div className="card-row">
-                  <FormInput
+                  <NumericTextInput
                     label="Coef. x"
-                    type="number"
-                    step="any"
                     placeholder="0"
-                    value={isNaN(r.coefX) ? '' : String(r.coefX)}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      updateRestriccionNumero(i, 'coefX', e.target.value)
-                    }
+                    value={r.coefX}
+                    onChange={(v) => updateRestriccionNumero(i, 'coefX', v)}
                     error={errors[`restriccion_${i}_coefX`]}
-                    showInvalid={showFieldErrors && i === form.restricciones.length - 1 && isNaN(r.coefX)}
+                    showInvalid={showFieldErrors && i === form.restricciones.length - 1 && r.coefX === ''}
                   />
-                  <FormInput
+                  <NumericTextInput
                     label="Coef. y"
-                    type="number"
-                    step="any"
                     placeholder="0"
-                    value={isNaN(r.coefY) ? '' : String(r.coefY)}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      updateRestriccionNumero(i, 'coefY', e.target.value)
-                    }
+                    value={r.coefY}
+                    onChange={(v) => updateRestriccionNumero(i, 'coefY', v)}
                     error={errors[`restriccion_${i}_coefY`]}
-                    showInvalid={showFieldErrors && i === form.restricciones.length - 1 && isNaN(r.coefY)}
+                    showInvalid={showFieldErrors && i === form.restricciones.length - 1 && r.coefY === ''}
                   />
                   <FormSelect
                     label="Signo"
@@ -483,17 +471,13 @@ export default function RegistroGrafico() {
                       updateRestriccion(i, 'signo', e.target.value as Signo)
                     }
                   />
-                  <FormInput
+                  <NumericTextInput
                     label="Constante"
-                    type="number"
-                    step="any"
                     placeholder="0"
-                    value={isNaN(r.constante) ? '' : String(r.constante)}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                      updateRestriccionNumero(i, 'constante', e.target.value)
-                    }
+                    value={r.constante}
+                    onChange={(v) => updateRestriccionNumero(i, 'constante', v)}
                     error={errors[`restriccion_${i}_constante`]}
-                    showInvalid={showFieldErrors && i === form.restricciones.length - 1 && isNaN(r.constante)}
+                    showInvalid={showFieldErrors && i === form.restricciones.length - 1 && r.constante === ''}
                   />
                 </div>
                 <FormInput

@@ -18,20 +18,20 @@ export interface SimplexVariable {
 export interface FOTermino {
   id: string
   variableId: string
-  coeficiente: number
+  coeficiente: string
 }
 
 export interface CoeficienteRestriccion {
   id: string
   variableId: string
-  coeficiente: number
+  coeficiente: string
 }
 
 export interface SimplexRestriccion {
   id: string
   coeficientes: CoeficienteRestriccion[]
   signo: Signo
-  constante: number
+  constante: string
   glosa: string
 }
 
@@ -46,10 +46,10 @@ export interface SimplexFormData {
 
 export interface GraficoRestriccion {
   id: string
-  coefX: number
-  coefY: number
+  coefX: string
+  coefY: string
   signo: Signo
-  constante: number
+  constante: string
   glosa: string
 }
 
@@ -59,8 +59,8 @@ export interface GraficoFormData {
   nombreX: string
   nombreY: string
   foTipo: Optimizacion
-  foCoefX: number
-  foCoefY: number
+  foCoefX: string
+  foCoefY: string
   restricciones: GraficoRestriccion[]
 }
 
@@ -234,8 +234,8 @@ export function crearGraficoFormDataVacia(): GraficoFormData {
     nombreX: '',
     nombreY: '',
     foTipo: 'max',
-    foCoefX: 0,
-    foCoefY: 0,
+    foCoefX: '',
+    foCoefY: '',
     restricciones: [],
   }
 }
@@ -243,10 +243,10 @@ export function crearGraficoFormDataVacia(): GraficoFormData {
 export function crearRestriccionGrafica(): GraficoRestriccion {
   return {
     id: generarId(),
-    coefX: NaN,
-    coefY: NaN,
+    coefX: '',
+    coefY: '',
     signo: '<=',
-    constante: NaN,
+    constante: '',
     glosa: '',
   }
 }
@@ -261,10 +261,10 @@ export function inicializarRestriccion(variables: SimplexVariable[]): SimplexRes
     coeficientes: variables.map((v) => ({
       id: generarId(),
       variableId: v.id,
-      coeficiente: NaN,
+      coeficiente: '',
     })),
     signo: '<=',
-    constante: NaN,
+    constante: '',
     glosa: '',
   }
 }
@@ -283,11 +283,15 @@ export function inicializarVariables(count: number): { variables: SimplexVariabl
     foTerminos.push({
       id: generarId(),
       variableId: varId,
-      coeficiente: 0,
+      coeficiente: '',
     })
   }
 
   return { variables, foTerminos }
+}
+
+export function parseNumericString(s: string): number {
+  return s === '' ? NaN : Number(s.replace(',', '.'))
 }
 
 // ---------------------------------------------------------------------------
@@ -300,14 +304,14 @@ export function mapApiToGraficoFormData(res: ProblemaGraficoEditable): GraficoFo
   const nombreX = res.variables.x
   const nombreY = res.variables.y
   const foTipo = res.funcion_objetivo.tipo
-  const foCoefX = res.funcion_objetivo.x
-  const foCoefY = res.funcion_objetivo.y
+  const foCoefX = String(res.funcion_objetivo.x)
+  const foCoefY = String(res.funcion_objetivo.y)
   const restricciones = res.restricciones.map((r) => ({
     id: generarId(),
-    coefX: r.x,
-    coefY: r.y,
+    coefX: String(r.x),
+    coefY: String(r.y),
     signo: r.signo,
-    constante: r.constante,
+    constante: String(r.constante),
     glosa: r.glosa ?? '',
   }))
   return {
@@ -335,17 +339,17 @@ export function mapApiToSimplexFormData(res: ProblemaSimplexEditable): SimplexFo
   const foTerminos = Object.entries(res.funcion_objetivo.terminos).map(([key, value]) => ({
     id: generarId(),
     variableId: keyToId.get(key) ?? key,
-    coeficiente: value,
+    coeficiente: String(value),
   }))
   const restricciones = res.restricciones.map((r) => ({
     id: generarId(),
     coeficientes: Object.entries(r.terminos).map(([key, value]) => ({
       id: generarId(),
       variableId: keyToId.get(key) ?? key,
-      coeficiente: value,
+      coeficiente: String(value),
     })),
     signo: r.signo,
-    constante: r.constante,
+    constante: String(r.constante),
     glosa: r.glosa ?? '',
   }))
   return {
